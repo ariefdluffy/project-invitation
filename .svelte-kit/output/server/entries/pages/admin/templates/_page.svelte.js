@@ -1,5 +1,5 @@
 import { H as attr, U as escape_html, W as FILENAME, a as attr_style, c as head, n as pop_element, r as push_element, s as ensure_array_like, u as stringify } from "../../../../chunks/dev.js";
-import { r as getTemplateCategoryLabel } from "../../../../chunks/template-categories.js";
+import { n as getTemplateCategoryLabel } from "../../../../chunks/template-categories.js";
 //#region src/routes/admin/templates/+page.svelte
 _page[FILENAME] = "src/routes/admin/templates/+page.svelte";
 function _page($$renderer, $$props) {

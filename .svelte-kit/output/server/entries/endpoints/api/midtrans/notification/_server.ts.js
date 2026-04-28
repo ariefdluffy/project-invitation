@@ -1,6 +1,6 @@
 import { n as getSetting } from "../../../../../chunks/settings.js";
 import { i as updatePaymentTransactionStatus, r as findPaymentTransactionByOrderId } from "../../../../../chunks/payment-transactions.js";
-import { c as updateUserAccess, t as addGuestLimitToUser } from "../../../../../chunks/users2.js";
+import { l as updateUserAccess, n as addTemplateQuotaToUser, t as addGuestLimitToUser } from "../../../../../chunks/users2.js";
 import { json } from "@sveltejs/kit";
 import crypto from "crypto";
 //#region src/routes/api/midtrans/notification/+server.ts
@@ -31,10 +31,14 @@ var POST = async ({ request }) => {
 			if (paymentTx.type === "premium") {
 				console.log(`[Midtrans] Activating Premium for User: ${userId}`);
 				await updateUserAccess(userId, 1, "paid", 3);
-			} else {
+			} else if (paymentTx.type === "addon") {
 				const addonQuantity = parseInt(await getSetting("addon_guest_quantity") || "50");
 				console.log(`[Midtrans] Adding ${addonQuantity} guests for User: ${userId}`);
 				await addGuestLimitToUser(userId, addonQuantity);
+			} else if (paymentTx.type === "template-expansion") {
+				const templateQuantity = parseInt(await getSetting("template_expansion_quantity") || "5");
+				console.log(`[Midtrans] Adding ${templateQuantity} templates for User: ${userId}`);
+				await addTemplateQuotaToUser(userId, templateQuantity);
 			}
 			await updatePaymentTransactionStatus(orderId, "success");
 		} else {
@@ -52,6 +56,10 @@ var POST = async ({ request }) => {
 				const addonQuantity = parseInt(await getSetting("addon_guest_quantity") || "50");
 				console.log(`[Midtrans] Adding ${addonQuantity} guests (legacy) for User: ${userId}`);
 				await addGuestLimitToUser(userId, addonQuantity);
+			} else if (legacyType === "TEMPLATE_EXPANSION") {
+				const templateQuantity = parseInt(await getSetting("template_expansion_quantity") || "5");
+				console.log(`[Midtrans] Adding ${templateQuantity} templates (legacy) for User: ${userId}`);
+				await addTemplateQuotaToUser(userId, templateQuantity);
 			}
 		}
 	}

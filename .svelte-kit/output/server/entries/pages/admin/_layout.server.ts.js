@@ -1,5 +1,5 @@
 import { n as getSetting } from "../../../chunks/settings.js";
-import { o as getAllUsers } from "../../../chunks/users2.js";
+import { s as getAllUsers } from "../../../chunks/users2.js";
 import { m as getTemplates, s as getAllInvitations } from "../../../chunks/invitations.js";
 //#region src/routes/admin/+layout.server.ts
 var load = async () => {

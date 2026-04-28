@@ -11,7 +11,9 @@ var ALLOWED_SETTING_KEYS = new Set([
 	"midtrans_is_production",
 	"app_name",
 	"payment_instructions",
-	"default_music_url"
+	"default_music_url",
+	"template_expansion_price",
+	"template_expansion_quantity"
 ]);
 var load = async ({ locals }) => {
 	if (!locals.user || locals.user.role !== "admin") return { settings: {} };

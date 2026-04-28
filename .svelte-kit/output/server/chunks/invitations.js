@@ -1,6 +1,8 @@
 import { t as getDb } from "./db.js";
-import { a as ensureGuestLimitColumn } from "./users2.js";
+import { o as ensureGuestLimitColumn } from "./users2.js";
 import { v4 } from "uuid";
+import fs from "fs";
+import path from "path";
 //#region src/lib/server/invitations.ts
 async function createInvitation(data) {
 	const db = await getDb();
@@ -44,7 +46,7 @@ async function updateInvitation(id, data) {
 	const db = await getDb();
 	const fields = [];
 	const values = [];
-	for (const field of [
+	const allowedFields = [
 		"template_id",
 		"slug",
 		"groom_name",
@@ -73,12 +75,20 @@ async function updateInvitation(id, data) {
 		"music_url",
 		"background_image",
 		"gallery_images",
-		"is_published"
-	]) if (field in data) {
+		"is_published",
+		"custom_content"
+	];
+	const templates = await getTemplates();
+	if (data.template_id) {
+		if (!templates.some((t) => t.id === data.template_id)) {
+			console.warn(`Template ID ${data.template_id} tidak ditemukan di database, menghapus dari data update.`);
+			delete data.template_id;
+		}
+	}
+	for (const field of allowedFields) if (field in data) {
 		fields.push(`${field} = ?`);
 		values.push(data[field]);
 	}
-	if (fields.length === 0) return getInvitationById(id);
 	fields.push("updated_at = CURRENT_TIMESTAMP");
 	values.push(id);
 	await db.execute(`UPDATE invitations SET ${fields.join(", ")} WHERE id = ?`, values);
@@ -203,20 +213,44 @@ async function getWishesByInvitation(invitationId) {
 	const [rows] = await (await getDb()).execute("SELECT * FROM wishes WHERE invitation_id = ? ORDER BY created_at DESC", [invitationId]);
 	return rows;
 }
-function normalizeTemplate(row) {
-	return {
-		...row,
-		category: row.category || "wedding"
-	};
-}
+var TEMPLATES_DIR = path.resolve("static/templates");
 async function getTemplates() {
-	const [rows] = await (await getDb()).execute("SELECT * FROM templates ORDER BY category ASC, created_at ASC");
-	return rows.map(normalizeTemplate);
+	if (!fs.existsSync(TEMPLATES_DIR)) {
+		console.warn("TEMPLATES_DIR does not exist:", TEMPLATES_DIR);
+		return [];
+	}
+	const templates = [];
+	try {
+		const categories = fs.readdirSync(TEMPLATES_DIR);
+		for (const cat of categories) {
+			const catPath = path.join(TEMPLATES_DIR, cat);
+			if (fs.statSync(catPath).isDirectory()) {
+				const files = fs.readdirSync(catPath).filter((f) => f.endsWith(".json"));
+				for (const file of files) try {
+					const content = fs.readFileSync(path.join(catPath, file), "utf-8");
+					const tmpl = JSON.parse(content);
+					templates.push({
+						...tmpl,
+						category: cat
+					});
+				} catch (err) {
+					console.error(`Error loading template ${file}:`, err);
+				}
+			}
+		}
+	} catch (err) {
+		console.error("Error reading templates directory:", err);
+	}
+	return templates;
 }
 async function getTemplateById(id) {
-	const [rows] = await (await getDb()).execute("SELECT * FROM templates WHERE id = ?", [id]);
-	const templates = rows;
-	return templates.length > 0 ? normalizeTemplate(templates[0]) : null;
+	const all = await getTemplates();
+	const found = all.find((t) => t.id === id) || null;
+	if (!found) {
+		console.warn(`Template with id ${id} not found, falling back to javanese-elegance`);
+		return all.find((t) => t.id === "javanese-elegance") || null;
+	}
+	return found;
 }
 async function fixMusicLinks() {
 	const db = await getDb();

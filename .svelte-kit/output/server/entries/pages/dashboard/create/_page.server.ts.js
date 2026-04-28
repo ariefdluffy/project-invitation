@@ -15,12 +15,22 @@ var actions = { default: async ({ request, locals }) => {
 	const formData = await request.formData();
 	const templateId = formData.get("template_id");
 	const groomName = formData.get("groom_name");
-	const brideName = formData.get("bride_name");
+	let brideName = formData.get("bride_name");
 	const slug = formData.get("slug");
-	if (!templateId || !groomName || !brideName || !slug) return fail(400, { error: "Semua field wajib harus diisi" });
+	const template = (await getTemplates()).find((t) => t.id === templateId);
+	const category = (template?.category || "wedding").toLowerCase();
+	const isSingleNameCategory = [
+		"birthday",
+		"gathering",
+		"formal",
+		"corporate",
+		"general"
+	].includes(category);
+	if (isSingleNameCategory && !brideName) brideName = groomName;
+	if (!templateId || !groomName || !slug || !brideName && !isSingleNameCategory) return fail(400, { error: "Semua field wajib harus diisi" });
 	if (!/^[a-z0-9-]+$/.test(slug)) return fail(400, { error: "Slug hanya boleh huruf kecil, angka, dan tanda hubung" });
-	await getTemplates();
 	const defaultMusic = await getSetting("default_music_url") || "";
+	if (!Boolean(template)) return fail(400, { error: "Template tidak valid atau tidak ditemukan." });
 	try {
 		throw redirect(303, `/dashboard/invitations/${(await createInvitation({
 			user_id: locals.user.id,

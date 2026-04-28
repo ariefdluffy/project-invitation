@@ -1,5 +1,15 @@
-import { c as updateUserAccess, i as deleteUser, o as getAllUsers, r as createUser, s as getUserById } from "../../../../chunks/users2.js";
+import { a as deleteUser, c as getUserById, i as createUser, l as updateUserAccess, s as getAllUsers, u as updateUserPassword } from "../../../../chunks/users2.js";
 import { fail } from "@sveltejs/kit";
+import crypto from "crypto";
+//#region src/lib/server/utils.ts
+function generateRandomPassword(length = 10) {
+	const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
+	let password = "";
+	const randomBytes = crypto.randomBytes(length);
+	for (let i = 0; i < length; i++) password += chars[randomBytes[i] % 72];
+	return password;
+}
+//#endregion
 //#region src/routes/admin/users/+page.server.ts
 var PAYMENT_FILTERS = [
 	"all",
@@ -88,6 +98,22 @@ var actions = {
 			};
 		} catch (err) {
 			return fail(400, { error: "Gagal menghapus user" });
+		}
+	},
+	resetPassword: async ({ request, locals }) => {
+		if (!locals.user || locals.user.role !== "admin") return fail(403, { error: "Tidak memiliki akses" });
+		const id = (await request.formData()).get("id");
+		if (!id) return fail(400, { error: "ID pengguna tidak valid." });
+		try {
+			const newRandomPassword = generateRandomPassword();
+			await updateUserPassword(id, newRandomPassword);
+			return {
+				success: true,
+				message: `Password berhasil direset. Password baru: ${newRandomPassword}`
+			};
+		} catch (err) {
+			console.error("[Admin Users] Error resetting password:", err);
+			return fail(500, { error: "Gagal mereset password user." });
 		}
 	}
 };

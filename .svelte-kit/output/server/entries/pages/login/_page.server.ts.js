@@ -1,4 +1,4 @@
-import { n as authenticateUser } from "../../../chunks/users2.js";
+import { r as authenticateUser } from "../../../chunks/users2.js";
 import { fail, redirect } from "@sveltejs/kit";
 //#region src/routes/login/+page.server.ts
 var actions = { default: async ({ request, cookies }) => {

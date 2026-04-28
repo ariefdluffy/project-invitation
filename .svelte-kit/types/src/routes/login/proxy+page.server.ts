@@ -29,8 +29,20 @@ export const actions = {
 
 		// Redirect to dashboard or admin
 		if (user.role === 'admin') {
+			cookies.set('flash', JSON.stringify({ id: crypto.randomUUID(), type: 'success', message: 'Login admin berhasil.' }), {
+				path: '/',
+				httpOnly: true,
+				sameSite: 'lax',
+				secure: false
+			});
 			throw redirect(303, '/admin');
 		}
+		cookies.set('flash', JSON.stringify({ id: crypto.randomUUID(), type: 'success', message: 'Login berhasil.' }), {
+			path: '/',
+			httpOnly: true,
+			sameSite: 'lax',
+			secure: false
+		});
 		throw redirect(303, '/dashboard');
 	}
 };

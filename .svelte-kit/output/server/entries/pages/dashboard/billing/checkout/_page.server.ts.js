@@ -7,10 +7,12 @@ import { redirect } from "@sveltejs/kit";
 var load = async ({ locals, url }) => {
 	if (!locals.user) throw redirect(302, "/login");
 	const type = url.searchParams.get("type") || "premium";
-	const [premiumPrice, addonPrice, addonQuantity, clientKey, appName, isProdSetting] = await Promise.all([
+	const [premiumPrice, addonPrice, addonQuantity, templateExpansionPrice, templateExpansionQuantity, clientKey, appName, isProdSetting] = await Promise.all([
 		getSetting("premium_price"),
 		getSetting("addon_guest_price"),
 		getSetting("addon_guest_quantity"),
+		getSetting("template_expansion_price"),
+		getSetting("template_expansion_quantity"),
 		getSetting("midtrans_client_key"),
 		getSetting("app_name"),
 		getSetting("midtrans_is_production")
@@ -29,8 +31,12 @@ var load = async ({ locals, url }) => {
 		amount = parseInt(addonPrice || "19000");
 		itemName = `Add-on +${addonQuantity || 50} Kuota Tamu`;
 		itemId = `ADDON_${addonQuantity || 50}`;
+	} else if (type === "template-expansion") {
+		amount = parseInt(templateExpansionPrice || "29000");
+		itemName = `Ekspansi +${templateExpansionQuantity || 5} Template Undangan`;
+		itemId = `TEMPLATE_EXPANSION_${templateExpansionQuantity || 5}`;
 	}
-	const orderType = type === "addon" ? "addon" : "premium";
+	const orderType = type === "addon" ? "addon" : type === "template-expansion" ? "template-expansion" : "premium";
 	const orderId = buildMidtransOrderId(orderType, locals.user.id);
 	try {
 		const transaction = await createMidtransTransaction({

@@ -1,0 +1,15 @@
+{
+  "id": "tmpl-anniversary-velvet",
+  "name": "Anniversary Velvet",
+  "category": "anniversary",
+  "thumbnail": "https://images.unsplash.com/photo-1529636799528-941f294af16f?auto=format&fit=crop&w=600&q=80",
+  "description": "Merah burgundy dan emas lembut \u2014 elegan untuk resepsi ulang tahun pernikahan atau milestone bersama pasangan.",
+  "defaultContent": {
+    "title": "The Wedding of",
+    "groom_name": "Nama Mempelai Pria",
+    "bride_name": "Nama Mempelai Wanita"
+  },
+  "primary_color": "#7f1d1d",
+  "secondary_color": "#d4a574",
+  "accent_color": "#fef2f2"
+}

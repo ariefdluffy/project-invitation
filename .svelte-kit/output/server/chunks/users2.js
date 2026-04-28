@@ -42,13 +42,13 @@ async function authenticateUser(email, password) {
 	return null;
 }
 async function getUserById(id) {
-	const [rows] = await (await getDb()).execute("SELECT id, username, email, role, has_access, payment_status, invitation_limit, guest_limit, created_at FROM users WHERE id = ?", [id]);
+	const [rows] = await (await getDb()).execute("SELECT id, username, email, role, has_access, payment_status, invitation_limit, guest_limit, template_quota, template_quota_used, created_at FROM users WHERE id = ?", [id]);
 	const userRows = rows;
 	if (userRows.length > 0) return userRows[0];
 	return null;
 }
 async function getAllUsers() {
-	const [rows] = await (await getDb()).execute("SELECT id, username, email, role, has_access, payment_status, invitation_limit, guest_limit, created_at FROM users");
+	const [rows] = await (await getDb()).execute("SELECT id, username, email, role, has_access, payment_status, invitation_limit, guest_limit, template_quota, template_quota_used, created_at FROM users");
 	return rows;
 }
 async function updateUserAccess(id, hasAccess, paymentStatus, invitationLimit, guestLimit) {
@@ -76,6 +76,14 @@ async function deleteUser(id) {
 async function addGuestLimitToUser(id, amount) {
 	await (await getDb()).execute("UPDATE users SET guest_limit = guest_limit + ? WHERE id = ?", [amount, id]);
 }
+async function addTemplateQuotaToUser(id, amount) {
+	await (await getDb()).execute("UPDATE users SET template_quota = template_quota + ? WHERE id = ?", [amount, id]);
+}
+async function updateUserPassword(id, newPassword) {
+	const db = await getDb();
+	const hashedPassword = bcryptjs.hashSync(newPassword, 10);
+	await db.execute("UPDATE users SET password = ? WHERE id = ?", [hashedPassword, id]);
+}
 async function ensureGuestLimitColumn() {
 	const db = await getDb();
 	try {
@@ -89,4 +97,4 @@ async function ensureGuestLimitColumn() {
 	}
 }
 //#endregion
-export { ensureGuestLimitColumn as a, updateUserAccess as c, deleteUser as i, authenticateUser as n, getAllUsers as o, createUser as r, getUserById as s, addGuestLimitToUser as t };
+export { deleteUser as a, getUserById as c, createUser as i, updateUserAccess as l, addTemplateQuotaToUser as n, ensureGuestLimitColumn as o, authenticateUser as r, getAllUsers as s, addGuestLimitToUser as t, updateUserPassword as u };

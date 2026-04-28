@@ -3,7 +3,7 @@ import { d as getInvitationBySlug, h as getWishesByInvitation, n as addWish, p a
 var load = async ({ params, url }) => {
 	const { slug } = params;
 	const invitation = await getInvitationBySlug(slug);
-	if (!invitation) return {
+	if (!invitation || !invitation.id) return {
 		status: 404,
 		error: /* @__PURE__ */ new Error("Undangan tidak ditemukan")
 	};

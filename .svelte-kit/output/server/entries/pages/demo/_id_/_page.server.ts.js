@@ -1,9 +1,25 @@
 import { t as getDb } from "../../../../chunks/db.js";
+import { m as getTemplates } from "../../../../chunks/invitations.js";
 import { error } from "@sveltejs/kit";
 //#region src/routes/demo/[id]/+page.server.ts
 var load = async ({ params }) => {
 	const [rows] = await (await getDb()).execute("SELECT * FROM templates WHERE id = ?", [params.id]);
-	const templates = rows;
+	let templates = rows;
+	const all = await getTemplates();
+	if (templates.length === 0) {
+		const found = all.find((t) => t.id === params.id);
+		if (found) templates = [found];
+	} else {
+		const jsonTemplate = all.find((t) => t.id === params.id);
+		if (jsonTemplate) {
+			const current = templates[0];
+			if (!Boolean(current?.defaultContent?.title)) templates[0] = {
+				...current,
+				...jsonTemplate,
+				defaultContent: jsonTemplate.defaultContent
+			};
+		}
+	}
 	if (templates.length === 0) throw error(404, "Template not found");
 	const namePairs = [
 		{
@@ -84,9 +100,48 @@ var load = async ({ params }) => {
 		]),
 		respect_person: "Keluarga Besar Bpk. Ahmad\nKeluarga Besar Bpk. Bambang"
 	};
+	const template = templates[0];
+	const defaultContent = template?.defaultContent || {};
+	const normalizedInvitation = { ...dummyInvitation };
+	const assignIfPresent = (key, targetKey) => {
+		const value = defaultContent[key];
+		if (value === void 0 || value === null || value === "") return;
+		if (targetKey === "bank_accounts" || targetKey === "dress_code_colors") {
+			normalizedInvitation[targetKey] = Array.isArray(value) ? JSON.stringify(value) : String(value);
+			return;
+		}
+		normalizedInvitation[targetKey] = String(value);
+	};
+	assignIfPresent("groom_name", "groom_name");
+	assignIfPresent("bride_name", "bride_name");
+	assignIfPresent("groom_full_name", "groom_full_name");
+	assignIfPresent("bride_full_name", "bride_full_name");
+	assignIfPresent("groom_parents", "groom_parents");
+	assignIfPresent("bride_parents", "bride_parents");
+	assignIfPresent("groom_photo", "groom_photo");
+	assignIfPresent("bride_photo", "bride_photo");
+	assignIfPresent("quote", "quote");
+	assignIfPresent("quote_source", "quote_source");
+	assignIfPresent("akad_date", "akad_date");
+	assignIfPresent("akad_time", "akad_time");
+	assignIfPresent("resepsi_date", "resepsi_date");
+	assignIfPresent("resepsi_time", "resepsi_time");
+	assignIfPresent("venue_name", "venue_name");
+	assignIfPresent("venue_address", "venue_address");
+	assignIfPresent("venue_map_url", "venue_map_url");
+	assignIfPresent("love_story", "love_story");
+	assignIfPresent("music_url", "music_url");
+	assignIfPresent("background_image", "background_image");
+	assignIfPresent("gallery_images", "gallery_images");
+	assignIfPresent("bank_accounts", "bank_accounts");
+	assignIfPresent("dress_code_colors", "dress_code_colors");
+	assignIfPresent("respect_person", "respect_person");
+	assignIfPresent("child_name", "groom_name");
+	assignIfPresent("parent_name", "bride_name");
+	if (defaultContent.title) normalizedInvitation.custom_content = JSON.stringify({ title: String(defaultContent.title) });
 	return {
-		template: templates[0],
-		invitation: dummyInvitation,
+		template,
+		invitation: normalizedInvitation,
 		wishes: [{
 			guest_name: "Budi Santoso",
 			message: "Selamat menempuh hidup baru ya Indri & Adi! Semoga samawa.",

@@ -7,9 +7,9 @@
 
 	let { data }: { data: PageData } = $props();
 
-	let currentPassword = '';
-	let newPassword = '';	
-	let confirmPassword = '';
+	let currentPassword = $state('');
+	let newPassword = $state('');
+	let confirmPassword = $state('');
 
 	const updatePasswordEnhance: SubmitFunction = () => {
 		return async ({ result, update }) => {

@@ -1597,62 +1597,62 @@
   }
 
   /* LUXURY & ROYAL LAYOUT */
-  .layout-luxury .invitation-container,
-  .layout-royal .invitation-container {
+  :global(.layout-luxury) .invitation-container,
+  :global(.layout-royal) .invitation-container {
     background: #000;
     color: #eee;
   }
-  .layout-luxury .hero-box,
-  .layout-royal .hero-box {
+  :global(.layout-luxury) .hero-box,
+  :global(.layout-royal) .hero-box {
     border: 1px solid var(--s-col);
     background: linear-gradient(to bottom, #1a1a1a, #000);
   }
-  .layout-luxury .names,
-  .layout-royal .names {
+  :global(.layout-luxury) .names,
+  :global(.layout-royal) .names {
     font-family: "Playfair Display", serif !important;
     letter-spacing: 2px;
   }
-  .layout-luxury .couple-card,
-  .layout-royal .couple-card {
+  :global(.layout-luxury) .couple-card,
+  :global(.layout-royal) .couple-card {
     border: 1px solid var(--s-col);
     background: #111;
     color: white;
   }
-  .layout-luxury .event-card,
-  .layout-royal .event-card {
+  :global(.layout-luxury) .event-card,
+  :global(.layout-royal) .event-card {
     background: #1a1a1a;
     border-top: 3px solid var(--s-col);
   }
 
   /* VINTAGE LAYOUT */
-  .layout-vintage .invitation-container {
+  :global(.layout-vintage) .invitation-container {
     background: #f4ece1;
   }
-  .layout-vintage .hero-box {
+  :global(.layout-vintage) .hero-box {
     background: #fff;
     border: 2px dashed #8d6e63;
     border-radius: 8px;
   }
-  .layout-vintage .names {
+  :global(.layout-vintage) .names {
     font-family: "Special Elite", cursive !important;
     color: #5d4037;
   }
-  .layout-vintage .couple-card {
+  :global(.layout-vintage) .couple-card {
     background: #fff;
     border: 1px solid #d7ccc8;
     transform: rotate(-2deg);
   }
-  .layout-vintage .event-card {
+  :global(.layout-vintage) .event-card {
     background: #fff;
     border-bottom: 5px solid #8d6e63;
   }
 
   /* CELESTIAL LAYOUT */
-  .layout-celestial .invitation-container {
+  :global(.layout-celestial) .invitation-container {
     background: #0f172a;
     color: #fff;
   }
-  .layout-celestial .hero-box {
+  :global(.layout-celestial) .hero-box {
     background: rgba(15, 23, 42, 0.8);
     border: 1px solid rgba(148, 163, 184, 0.3);
     border-radius: 50%;
@@ -1663,27 +1663,27 @@
     justify-content: center;
     margin: 0 auto;
   }
-  .layout-celestial .names {
+  :global(.layout-celestial) .names {
     font-family: "Cinzel Decorative", serif !important;
     font-size: 2.5rem;
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
   }
-  .layout-celestial .couple-card {
+  :global(.layout-celestial) .couple-card {
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(10px);
     border-radius: 20px;
   }
 
   /* TROPICAL LAYOUT */
-  .layout-tropical .invitation-container {
+  :global(.layout-tropical) .invitation-container {
     background: #f0fdfa;
   }
-  .layout-tropical .hero-box {
+  :global(.layout-tropical) .hero-box {
     border-left: 8px solid var(--p-col);
     background: white;
     padding-left: 2rem;
   }
-  .layout-tropical .names {
+  :global(.layout-tropical) .names {
     font-family: "Outfit", sans-serif !important;
     color: var(--p-col);
     font-weight: 800;

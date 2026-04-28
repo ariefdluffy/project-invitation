@@ -307,57 +307,58 @@
 			<div class="form-row">
 				<div class="form-col">
 					<div class="form-group">
-						<label>Tanggal Akad</label>
-						<input type="date" name="akad_date" class="form-control" value={formatForInput(data.invitation.akad_date)} />
+						<label for="akad_date">Tanggal Akad</label>
+						<input id="akad_date" type="date" name="akad_date" class="form-control" value={formatForInput(data.invitation.akad_date)} />
 					</div>
 					<div class="form-group">
-						<label>Waktu Akad</label>
-						<input name="akad_time" class="form-control" value={data.invitation.akad_time} />
+						<label for="akad_time">Waktu Akad</label>
+						<input id="akad_time" type="time" name="akad_time" class="form-control" value={data.invitation.akad_time} />
 					</div>
 				</div>
 				<div class="form-col">
 					<div class="form-group">
-						<label>Tanggal Resepsi</label>
-						<input type="date" name="resepsi_date" class="form-control" value={formatForInput(data.invitation.resepsi_date)} />
+						<label for="resepsi_date">Tanggal Resepsi</label>
+						<input id="resepsi_date" type="date" name="resepsi_date" class="form-control" value={formatForInput(data.invitation.resepsi_date)} />
 					</div>
 					<div class="form-group">
-						<label>Waktu Resepsi</label>
-						<input name="resepsi_time" class="form-control" value={data.invitation.resepsi_time} />
+						<label for="resepsi_time">Waktu Resepsi</label>
+						<input id="resepsi_time" type="time" name="resepsi_time" class="form-control" value={data.invitation.resepsi_time} />
 					</div>
 				</div>
 			</div>
 
 			<div class="form-group">
-				<label>Nama Tempat</label>
-				<input name="venue_name" class="form-control" value={data.invitation.venue_name} />
+				<label for="venue_name">Nama Tempat</label>
+				<input id="venue_name" name="venue_name" class="form-control" value={data.invitation.venue_name} />
 			</div>
 			<div class="form-group">
-				<label>Alamat</label>
-				<textarea name="venue_address" class="form-control">{data.invitation.venue_address}</textarea>
+				<label for="venue_address">Alamat</label>
+				<textarea id="venue_address" name="venue_address" class="form-control">{data.invitation.venue_address}</textarea>
 			</div>
 			<div class="form-group">
-				<label>Link Google Maps</label>
-				<input name="venue_map_url" class="form-control" value={data.invitation.venue_map_url} />
+				<label for="venue_map_url">Link Google Maps</label>
+				<input id="venue_map_url" name="venue_map_url" class="form-control" value={data.invitation.venue_map_url} />
 			</div>
 
 			<h3 class="col-title" style="margin-top: 1.5rem">📖 Kutipan & Cerita</h3>
 			<div class="form-group">
-				<label>Kutipan</label>
-				<textarea name="quote" class="form-control">{data.invitation.quote}</textarea>
+				<label for="quote">Kutipan</label>
+				<textarea id="quote" name="quote" class="form-control">{data.invitation.quote}</textarea>
 			</div>
 			<div class="form-group">
-				<label>Sumber</label>
-				<input name="quote_source" class="form-control" value={data.invitation.quote_source} />
+				<label for="quote_source">Sumber</label>
+				<input id="quote_source" name="quote_source" class="form-control" value={data.invitation.quote_source} />
 			</div>
 			<div class="form-group">
-				<label>Love Story</label>
-				<textarea name="love_story" class="form-control" rows="5">{data.invitation.love_story}</textarea>
+				<label for="love_story">Love Story</label>
+				<textarea id="love_story" name="love_story" class="form-control" rows="5">{data.invitation.love_story}</textarea>
 			</div>
 
 			<div class="form-group">
-				<label>Hormat Kami</label>
+				<label for="respect_person">Hormat Kami</label>
 				<p class="sub" style="margin-bottom:0.5rem">Opsional. Masukkan nama pengundang (satu per baris). Jika kosong, akan otomatis menampilkan nama orang tua.</p>
 				<textarea 
+					id="respect_person"
 					name="respect_person" 
 					class="form-control" 
 					rows="3" 
@@ -367,9 +368,10 @@
 
 			<h3 class="col-title" style="margin-top: 1.5rem">🎨 Media Utama</h3>
 			<div class="form-group">
-				<label>Background Halaman Depan (URL Foto)</label>
+				<label for="background_image">Background Halaman Depan (URL Foto)</label>
 				<p class="sub" style="margin-bottom:0.5rem">Masukkan URL foto (satu per baris). Ambil URL dari menu <a href="/dashboard/media" target="_blank" style="color: var(--dash-accent); text-decoration: underline;">Kelola Media</a>.</p>
 				<textarea 
+					id="background_image"
 					name="background_image" 
 					class="form-control" 
 					rows="3" 
@@ -385,9 +387,10 @@
 			</div>
 			
 			<div class="form-group">
-				<label>Galeri Pre-Wedding (URL Foto)</label>
+				<label for="gallery_images">Galeri Pre-Wedding (URL Foto)</label>
 				<p class="sub" style="margin-bottom:0.5rem">Masukkan URL foto galeri (satu per baris). Ambil URL dari menu <a href="/dashboard/media" target="_blank" style="color: var(--dash-accent); text-decoration: underline;">Kelola Media</a>.</p>
 				<textarea 
+					id="gallery_images"
 					name="gallery_images" 
 					class="form-control" 
 					rows="5" 
@@ -403,8 +406,8 @@
 			</div>
 
 			<div class="form-group">
-				<label>Musik Latar (URL .mp3)</label>
-				<input name="music_url" class="form-control" placeholder="https://.../music.mp3" value={data.invitation.music_url || ''} />
+				<label for="music_url">Musik Latar (URL .mp3)</label>
+				<input id="music_url" name="music_url" class="form-control" placeholder="https://.../music.mp3" value={data.invitation.music_url || ''} />
 			</div>
 
 			<button type="submit" class="btn btn-primary" style="margin-top: 1.5rem;">💾 Simpan Perubahan</button>
@@ -418,16 +421,16 @@
 		<form method="POST" action="?/update">
             <h3 class="col-title" style="margin-bottom: 1rem">✍️ Kustomisasi Teks</h3>
 			<div class="form-group">
-				<label>Judul Utama</label>
-				<input name="custom_content[title]" class="form-control" value={customContent.title || ''} oninput={e => customContent.title = e.currentTarget.value} />
+				<label for="custom_title">Judul Utama</label>
+				<input id="custom_title" name="custom_content[title]" class="form-control" value={customContent.title || ''} oninput={e => customContent.title = e.currentTarget.value} />
 			</div>
 			<div class="form-group">
-				<label>Heading Mempelai</label>
-				<input name="custom_content[heading]" class="form-control" value={customContent.heading || ''} oninput={e => customContent.heading = e.currentTarget.value} />
+				<label for="custom_heading">Heading Mempelai</label>
+				<input id="custom_heading" name="custom_content[heading]" class="form-control" value={customContent.heading || ''} oninput={e => customContent.heading = e.currentTarget.value} />
 			</div>
 			<div class="form-group">
-				<label>Teks Undangan</label>
-				<textarea name="custom_content[invitation_text]" class="form-control" rows="5" oninput={e => customContent.invitation_text = e.currentTarget.value}>{customContent.invitation_text || ''}</textarea>
+				<label for="custom_invitation_text">Teks Undangan</label>
+				<textarea id="custom_invitation_text" name="custom_content[invitation_text]" class="form-control" rows="5" oninput={e => customContent.invitation_text = e.currentTarget.value}>{customContent.invitation_text || ''}</textarea>
 			</div>
 			<!-- Simpan sebagai JSON string tunggal ke kolom 'custom_content' -->
 			<input type="hidden" name="custom_content" value={JSON.stringify(customContent)} />
@@ -535,8 +538,24 @@
 
 <!-- Delete Confirmation Modal -->
 {#if showDeleteConfirm}
-	<div class="modal-backdrop" onclick={() => showDeleteConfirm = false}>
-		<div class="confirm-modal" onclick={(e) => e.stopPropagation()}>
+	<div
+		class="modal-backdrop"
+		role="button"
+		tabindex="0"
+		onclick={() => showDeleteConfirm = false}
+		onkeydown={(e) => {
+			if (e.key === 'Enter' || e.key === ' ') showDeleteConfirm = false;
+			if (e.key === 'Escape') showDeleteConfirm = false;
+		}}
+	>
+		<div
+			class="confirm-modal"
+			role="dialog"
+			aria-modal="true"
+			tabindex="0"
+			onclick={(e) => e.stopPropagation()}
+			onkeydown={(e) => e.stopPropagation()}
+		>
 			<div class="modal-icon">⚠️</div>
 			<h3>Hapus Undangan?</h3>
 			<p class="confirm-message">

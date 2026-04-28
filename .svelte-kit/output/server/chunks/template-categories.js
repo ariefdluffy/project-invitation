@@ -2,32 +2,24 @@
 /** Kategori acara untuk template (nilai disimpan di DB kolom `templates.category`). */
 var TEMPLATE_CATEGORIES = [
 	{
-		id: "wedding",
-		label: "Pernikahan"
+		id: "pernikahan",
+		label: "Undangan Pernikahan"
 	},
 	{
 		id: "khitan",
-		label: "Khitan / sunatan"
+		label: "Undangan Khitan"
 	},
 	{
 		id: "aqiqah",
-		label: "Aqiqah"
-	},
-	{
-		id: "anniversary",
-		label: "Ulang tahun pernikahan"
-	},
-	{
-		id: "birthday",
-		label: "Ulang tahun"
+		label: "Undangan Aqiqah"
 	},
 	{
 		id: "gathering",
-		label: "Arisan & gathering"
+		label: "Arisan / Gathering"
 	},
 	{
-		id: "corporate",
-		label: "Formal / perusahaan"
+		id: "formal",
+		label: "Formal / Perusahaan"
 	},
 	{
 		id: "general",
@@ -40,4 +32,4 @@ function getTemplateCategoryLabel(category) {
 	return TEMPLATE_CATEGORIES.find((c) => c.id === id)?.label ?? "Umum";
 }
 //#endregion
-export { TEMPLATE_CATEGORIES as n, getTemplateCategoryLabel as r, DEFAULT_TEMPLATE_CATEGORY as t };
+export { getTemplateCategoryLabel as n, DEFAULT_TEMPLATE_CATEGORY as t };

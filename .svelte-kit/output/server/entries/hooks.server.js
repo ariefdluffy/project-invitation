@@ -1,5 +1,5 @@
 import { n as ensurePaymentTransactionsTable } from "../chunks/payment-transactions.js";
-import { s as getUserById } from "../chunks/users2.js";
+import { c as getUserById } from "../chunks/users2.js";
 import { _ as seedSettings, g as seedAdmin, v as seedTemplates } from "../chunks/invitations.js";
 //#region src/hooks.server.ts
 var seeded = false;

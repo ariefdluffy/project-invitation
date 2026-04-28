@@ -7,9 +7,9 @@
 
 	let { data }: { data: PageData } = $props();
 
-	let currentPassword = '';
-	let newPassword = '';	
-	let confirmPassword = '';
+	let currentPassword = $state('');
+	let newPassword = $state('');
+	let confirmPassword = $state('');
 
 	const updatePasswordEnhance: SubmitFunction = () => {
 		return async ({ result, update }) => {
@@ -225,11 +225,6 @@
 		border-color: var(--accent);
 		outline: none;
 		box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.2);
-	}
-
-	.form-control[readonly] {
-		background-color: var(--dash-bg-soft);
-		cursor: default;
 	}
 
 	.btn-primary {

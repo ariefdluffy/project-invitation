@@ -333,16 +333,6 @@
 		flex-shrink: 0;
 	}
 	
-	.info-list {
-		padding-left: 1.2rem;
-		font-size: 0.95rem;
-		color: #334155;
-		line-height: 1.6;
-	}
-	
-	.info-list li {
-		margin-bottom: 0.75rem;
-	}
 	.form-row {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));

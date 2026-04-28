@@ -8,7 +8,7 @@
 
 <div class="dash-layout">
 	<!-- Mobile Toggle -->
-	<button class="mobile-toggle" onclick={() => sidebarOpen = !sidebarOpen}>
+	<button class="mobile-toggle" type="button" aria-label="Toggle sidebar" onclick={() => sidebarOpen = !sidebarOpen}>
 		<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
 			<path d="M3 12h18M3 6h18M3 18h18"/>
 		</svg>
@@ -67,7 +67,7 @@
 </div>
 
 {#if sidebarOpen}
-	<button class="sidebar-overlay" onclick={() => sidebarOpen = false}></button>
+	<button class="sidebar-overlay" type="button" aria-label="Close sidebar" onclick={() => sidebarOpen = false}></button>
 {/if}
 
 <style>

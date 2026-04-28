@@ -1,5 +1,6 @@
 <script lang="ts">
 	import type { PageData, ActionData } from './$types';
+	import type { SubmitFunction } from '@sveltejs/kit';
 	import { enhance } from '$app/forms';
 	import { toast } from '$lib/toast.svelte';
 	import { invalidateAll } from '$app/navigation';
@@ -9,25 +10,46 @@
 
 	let showAddModal = $state(false);
 	let showResetModal = $state(false);
+	let showDeleteModal = $state(false);
 	let userToReset = $state<User | null>(null);
+	let userToDelete = $state<User | null>(null);
 
 	function openResetModal(user: User) {
 		userToReset = user;
 		showResetModal = true;
 	}
+
+	function openDeleteModal(user: User) {
+		userToDelete = user;
+		showDeleteModal = true;
+	}
 	
+	const handleAdminFormEnhance: SubmitFunction = () => {
+		return async ({ result, update }) => {
+			await update();
+			if (result.type === 'success') {
+				const d = result.data as { message?: string } | undefined;
+				if (d?.message) {
+					if (d.message.includes('Password berhasil direset')) {
+						toast.success(d.message, 15000);
+					} else {
+						toast.success(d.message);
+					}
+				}
+			} else if (result.type === 'failure') {
+				const d = result.data as { error?: string } | undefined;
+				if (d?.error) toast.error(d.error);
+			} else if (result.type === 'error') {
+				toast.error('Terjadi kesalahan server.');
+			}
+		};
+	};
+
 	$effect(() => {
 		if (form?.success) {
 			showAddModal = false;
 			showResetModal = false;
-			
-			if (form.message && form.message.includes('Password berhasil direset')) {
-				toast.success(form.message, 15000); // Tampilkan toast selama 15 detik
-			} else if (form.message) {
-				toast.success(form.message);
-			}
-		} else if (form?.error) {
-			toast.error(form.error);
+			showDeleteModal = false;
 		}
 	});
 </script>
@@ -123,7 +145,7 @@
 					<td>{user.email}</td>
 					<td><span class="badge {user.role === 'admin' ? 'badge-info' : 'badge-success'}">{user.role}</span></td>
 					<td>
-						<form method="POST" action="?/updateAccess" use:enhance>
+						<form method="POST" action="?/updateAccess" use:enhance={handleAdminFormEnhance}>
 							<input type="hidden" name="id" value={user.id} />
 							<input type="hidden" name="payment_status" value={user.payment_status} />
 							<input type="hidden" name="invitation_limit" value={user.invitation_limit} />
@@ -140,7 +162,7 @@
 						</form>
 					</td>
 					<td>
-						<form method="POST" action="?/updateAccess" use:enhance>
+						<form method="POST" action="?/updateAccess" use:enhance={handleAdminFormEnhance}>
 							<input type="hidden" name="id" value={user.id} />
 							<input type="hidden" name="has_access" value={user.has_access === 1 ? 'on' : 'off'} />
 							<input type="hidden" name="invitation_limit" value={user.invitation_limit} />
@@ -158,7 +180,7 @@
 						</form>
 					</td>
 					<td>
-						<form method="POST" action="?/updateAccess" use:enhance>
+						<form method="POST" action="?/updateAccess" use:enhance={handleAdminFormEnhance}>
 							<input type="hidden" name="id" value={user.id} />
 							<input type="hidden" name="has_access" value={user.has_access === 1 ? 'on' : 'off'} />
 							<input type="hidden" name="payment_status" value={user.payment_status} />
@@ -174,7 +196,7 @@
 						</form>
 					</td>
 					<td>
-						<form method="POST" action="?/updateAccess" use:enhance>
+						<form method="POST" action="?/updateAccess" use:enhance={handleAdminFormEnhance}>
 							<input type="hidden" name="id" value={user.id} />
 							<input type="hidden" name="has_access" value={user.has_access === 1 ? 'on' : 'off'} />
 							<input type="hidden" name="payment_status" value={user.payment_status} />
@@ -191,17 +213,14 @@
 					</td>
 					<td>
 						{#if user.role !== 'admin'}
-							<form method="POST" action="?/delete" use:enhance>
-								<input type="hidden" name="id" value={user.id} />
-								<button 
-									type="submit" 
-									class="btn-icon btn-danger" 
-									onclick={(e) => { if (!confirm('Hapus user ini?')) e.preventDefault(); }}
-									title="Hapus User"
-								>
-									🗑️
-								</button>
-							</form>
+							<button 
+								type="button" 
+								class="btn-icon btn-danger" 
+								onclick={() => openDeleteModal(user)}
+								title="Hapus User"
+							>
+								🗑️
+							</button>
 						{:else}
 							<span style="font-size: 0.75rem; color: var(--dash-text-muted); opacity: 0.5;">Sistem</span>
 						{/if}
@@ -226,8 +245,17 @@
 
 <!-- Modal Tambah User -->
 {#if showAddModal}
-	<div class="modal-overlay" onclick={(e) => { if (e.target === e.currentTarget) showAddModal = false; }}>
-		<div class="modal-content">
+	<div
+		class="modal-overlay"
+		role="button"
+		tabindex="0"
+		onclick={(e) => { if (e.target === e.currentTarget) showAddModal = false; }}
+		onkeydown={(e) => {
+			if (e.key === 'Enter' || e.key === ' ') showAddModal = false;
+			if (e.key === 'Escape') showAddModal = false;
+		}}
+	>
+		<div class="modal-content" role="dialog" aria-modal="true" tabindex="0" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()}>
 			<div class="modal-header">
 				<h2>Tambah User Baru</h2>
 				<button class="btn-close" onclick={() => showAddModal = false}>✕</button>
@@ -237,7 +265,7 @@
 				<div class="error-message">{form.error}</div>
 			{/if}
 			
-			<form method="POST" action="?/addUser" use:enhance>
+			<form method="POST" action="?/addUser" use:enhance={handleAdminFormEnhance}>
 				<div class="form-group">
 					<label for="username">Username</label>
 					<input type="text" id="username" name="username" class="form-control" placeholder="cth: johndoe" required />
@@ -269,19 +297,59 @@
 
 <!-- Modal Reset Password -->
 {#if showResetModal && userToReset}
-	<div class="modal-overlay" onclick={(e) => { if (e.target === e.currentTarget) showResetModal = false; }}>
-		<div class="modal-content">
+	<div
+		class="modal-overlay"
+		role="button"
+		tabindex="0"
+		onclick={(e) => { if (e.target === e.currentTarget) showResetModal = false; }}
+		onkeydown={(e) => {
+			if (e.key === 'Enter' || e.key === ' ') showResetModal = false;
+			if (e.key === 'Escape') showResetModal = false;
+		}}
+	>
+		<div class="modal-content" role="dialog" aria-modal="true" tabindex="0" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()}>
 			<div class="modal-header">
 				<h2>Reset Password</h2>
 				<button class="btn-close" onclick={() => showResetModal = false}>✕</button>
 			</div>
 			<p>Anda yakin ingin mereset password untuk pengguna <strong>{userToReset.username}</strong>? Password baru akan dibuat secara acak dan ditampilkan setelah proses selesai. Tindakan ini tidak dapat dibatalkan.</p>
 			
-			<form method="POST" action="?/resetPassword" use:enhance>
+			<form method="POST" action="?/resetPassword" use:enhance={handleAdminFormEnhance}>
 				<input type="hidden" name="id" value={userToReset.id} />
 				<div class="modal-actions">
 					<button type="button" class="btn btn-secondary" onclick={() => showResetModal = false}>Batal</button>
 					<button type="submit" class="btn btn-danger">Ya, Reset Password</button>
+				</div>
+			</form>
+		</div>
+	</div>
+{/if}
+
+<!-- Modal Hapus User -->
+{#if showDeleteModal && userToDelete}
+	<div
+		class="modal-overlay"
+		role="button"
+		tabindex="0"
+		onclick={(e) => { if (e.target === e.currentTarget) showDeleteModal = false; }}
+		onkeydown={(e) => {
+			if (e.key === 'Enter' || e.key === ' ') showDeleteModal = false;
+			if (e.key === 'Escape') showDeleteModal = false;
+		}}
+	>
+		<div class="modal-content" role="dialog" aria-modal="true" tabindex="0" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()}>
+			<div class="modal-header">
+				<h2>Hapus User</h2>
+				<button class="btn-close" onclick={() => showDeleteModal = false}>✕</button>
+			</div>
+			<p>Anda yakin ingin menghapus user <strong>{userToDelete.username}</strong>?</p>
+			<p style="margin-top: 0.5rem; color: var(--color-danger);">Tindakan ini tidak dapat dibatalkan.</p>
+
+			<form method="POST" action="?/delete" use:enhance={handleAdminFormEnhance}>
+				<input type="hidden" name="id" value={userToDelete.id} />
+				<div class="modal-actions">
+					<button type="button" class="btn btn-secondary" onclick={() => showDeleteModal = false}>Batal</button>
+					<button type="submit" class="btn btn-danger">Ya, Hapus</button>
 				</div>
 			</form>
 		</div>

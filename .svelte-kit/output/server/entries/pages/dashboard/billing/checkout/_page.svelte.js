@@ -9,7 +9,7 @@ function _page($$renderer, $$props) {
 		let { data } = $$props;
 		head("1uenw5a", $$renderer, ($$renderer) => {
 			$$renderer.title(($$renderer) => {
-				$$renderer.push(`<title>Checkout Pembayaran - Wedding.id</title>`);
+				$$renderer.push(`<title>Checkout Pembayaran - ${escape_html(data.appName)}</title>`);
 			});
 			if (!data.error && data.clientKey) {
 				$$renderer.push("<!--[0-->");

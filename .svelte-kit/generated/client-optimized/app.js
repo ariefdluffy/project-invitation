@@ -23,7 +23,9 @@ export const nodes = [
 	() => import('./nodes/19'),
 	() => import('./nodes/20'),
 	() => import('./nodes/21'),
-	() => import('./nodes/22')
+	() => import('./nodes/22'),
+	() => import('./nodes/23'),
+	() => import('./nodes/24')
 ];
 
 export const server_loads = [0,2,3];
@@ -32,22 +34,24 @@ export const dictionary = {
 		"/": [~4],
 		"/admin": [5,[2]],
 		"/admin/invitations": [6,[2]],
-		"/admin/settings": [~7,[2]],
-		"/admin/templates": [8,[2]],
-		"/admin/templates/preview/[id]": [~9,[2]],
-		"/admin/users": [~10,[2]],
-		"/dashboard": [~11,[3]],
-		"/dashboard/billing": [~12,[3]],
-		"/dashboard/billing/checkout": [~13,[3]],
-		"/dashboard/create": [~14,[3]],
-		"/dashboard/invitations": [~15,[3]],
-		"/dashboard/invitations/[id]": [~16,[3]],
-		"/dashboard/media": [~17,[3]],
-		"/demo/[id]": [~18],
-		"/invitation/[slug]": [~19],
-		"/login": [20],
-		"/logout": [21],
-		"/register": [22]
+		"/admin/profile": [~7,[2]],
+		"/admin/settings": [~8,[2]],
+		"/admin/templates": [9,[2]],
+		"/admin/templates/preview/[id]": [~10,[2]],
+		"/admin/users": [~11,[2]],
+		"/dashboard": [~12,[3]],
+		"/dashboard/billing": [~13,[3]],
+		"/dashboard/billing/checkout": [~14,[3]],
+		"/dashboard/create": [~15,[3]],
+		"/dashboard/invitations": [~16,[3]],
+		"/dashboard/invitations/[id]": [~17,[3]],
+		"/dashboard/media": [~18,[3]],
+		"/dashboard/profile": [~19,[3]],
+		"/demo/[id]": [~20],
+		"/invitation/[slug]": [~21],
+		"/login": [22],
+		"/logout": [23],
+		"/register": [24]
 	};
 
 export const hooks = {

@@ -25,22 +25,30 @@ var actions = {
 		if (!invitation || invitation.user_id !== locals.user.id && locals.user.role !== "admin") return fail(403, { error: "Tidak memiliki akses" });
 		const formData = await request.formData();
 		const data = {};
+		const manualTemplateId = formData.get("template_id");
+		if (manualTemplateId) data.template_id = manualTemplateId;
 		const uploadDir = join(process.cwd(), "static", "uploads");
 		if (!existsSync(uploadDir)) mkdirSync(uploadDir, { recursive: true });
 		for (const [key, value] of formData.entries()) {
-			if (key === "_action") continue;
+			if (key === "_action" || key === "template_id") continue;
 			if (value instanceof File && value.size > 0) {
 				const ext = value.name.split(".").pop();
 				const fileName = `${params.id}-${key}-${Date.now()}.${ext}`;
 				writeFileSync(join(uploadDir, fileName), Buffer.from(await value.arrayBuffer()));
 				data[key] = `/uploads/${fileName}`;
-			} else if (!(value instanceof File)) data[key] = value === "" ? null : value;
+			} else if (key === "custom_content") data[key] = value;
+			else if (!(value instanceof File)) data[key] = value === "" ? null : value;
 		}
-		await updateInvitation(params.id, data);
-		return {
-			success: true,
-			message: "Undangan berhasil diperbarui"
-		};
+		try {
+			await updateInvitation(params.id, data);
+			return {
+				success: true,
+				message: "Undangan berhasil diperbarui"
+			};
+		} catch (e) {
+			console.error("Update error:", e);
+			return fail(500, { error: e.message || "Gagal memperbarui undangan" });
+		}
 	},
 	publish: async ({ params, locals }) => {
 		const invitation = await getInvitationById(params.id);

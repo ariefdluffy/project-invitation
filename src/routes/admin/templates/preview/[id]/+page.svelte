@@ -338,7 +338,7 @@
   }
 
   /* Royal Midnight - Modernized */
-  .template-royal-midnight .hero-box {
+  :global(.template-royal-midnight) .hero-box {
     background: linear-gradient(
       135deg,
       rgba(15, 23, 42, 0.9),
@@ -350,7 +350,7 @@
     padding: 3rem;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
   }
-  .template-royal-midnight .couple-card {
+  :global(.template-royal-midnight) .couple-card {
     background: rgba(255, 255, 255, 0.05);
     backdrop-filter: blur(10px);
     border: 1px solid rgba(192, 160, 128, 0.2);
@@ -358,7 +358,7 @@
     padding: 2rem;
     transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
-  .template-royal-midnight .couple-card:hover {
+  :global(.template-royal-midnight) .couple-card:hover {
     transform: translateY(-15px);
   }
   .template-royal-midnight .avatar {

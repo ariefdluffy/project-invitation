@@ -180,8 +180,24 @@ class="file-input"
 
 <!-- Delete Confirmation Modal -->
 {#if deleteConfirmModal.open}
-<div class="modal-backdrop" onclick={() => deleteConfirmModal = { open: false, fileName: '', fileUrl: '' }}>
-<div class="delete-modal" onclick={(e) => e.stopPropagation()}>
+<div
+ class="modal-backdrop"
+ role="button"
+ tabindex="0"
+ onclick={() => deleteConfirmModal = { open: false, fileName: '', fileUrl: '' }}
+ onkeydown={(e) => {
+  if (e.key === 'Enter' || e.key === ' ') deleteConfirmModal = { open: false, fileName: '', fileUrl: '' };
+  if (e.key === 'Escape') deleteConfirmModal = { open: false, fileName: '', fileUrl: '' };
+ }}
+>
+<div
+ class="delete-modal"
+ role="dialog"
+ aria-modal="true"
+ tabindex="0"
+ onclick={(e) => e.stopPropagation()}
+ onkeydown={(e) => e.stopPropagation()}
+>
 <div class="modal-icon">
 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
 <polyline points="3 6 5 6 21 6"></polyline>
