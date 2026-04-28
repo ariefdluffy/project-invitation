@@ -72,12 +72,12 @@ wedding-invitation/
 
 **MySQL Connection:**
 ```bash
-mysql -u wedding_user -p'WeddingDB2024!' wedding_db
+mysql -u wedding_user -p wedding_db
 ```
 
 **Root Access:**
 ```bash
-mysql -u root -p'admin123'
+mysql -u root -p'admin1223'
 ```
 
 ---
