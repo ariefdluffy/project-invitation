@@ -1,1 +1,0 @@
-var e=[{id:`pernikahan`,label:`Undangan Pernikahan`},{id:`khitan`,label:`Undangan Khitan`},{id:`aqiqah`,label:`Undangan Aqiqah`},{id:`gathering`,label:`Arisan / Gathering`},{id:`formal`,label:`Formal / Perusahaan`},{id:`general`,label:`Umum / lainnya`}],t=`wedding`;function n(t){let n=t||`wedding`;return e.find(e=>e.id===n)?.label??`Umum`}export{n,t};
