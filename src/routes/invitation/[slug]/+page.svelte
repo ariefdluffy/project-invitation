@@ -308,7 +308,7 @@
 				<GeneralLayout {invitation} {template} {wishes} {guestName} {form} />
 			{/if}
 		{:else}
-			<InvitationCover {invitation} {templateTitle} {isOpened} {randomBg} {openInvitation} />
+			<InvitationCover {invitation} {templateTitle} {isOpened} {randomBg} {openInvitation} {guestName} />
 
 			{#if isOpened}
 				<main class="invitation-main animate-fade-in">

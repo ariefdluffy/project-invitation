@@ -4,13 +4,15 @@
 		templateTitle,
 		isOpened,
 		randomBg,
-		openInvitation
+		openInvitation,
+		guestName = ""
 	}: {
 		invitation: Record<string, any>;
 		templateTitle: string;
 		isOpened: boolean;
 		randomBg: string;
 		openInvitation: () => void;
+		guestName?: string;
 	} = $props();
 </script>
 
@@ -38,6 +40,13 @@
 						.replace(/\//g, " . ")
 				: ""}
 		</div>
+
+		{#if guestName}
+			<div class="guest-info">
+				<p>Kepada Yth. Bapak/Ibu/Saudara/i</p>
+				<h3>{guestName}</h3>
+			</div>
+		{/if}
 
 		<button class="btn-open" onclick={openInvitation}>
 			<svg
@@ -97,6 +106,22 @@
 		letter-spacing: 4px;
 		color: var(--s-col);
 		margin-bottom: 1rem;
+	}
+	.guest-info {
+		margin: 1.5rem 0;
+		text-align: center;
+	}
+	.guest-info p {
+		font-size: 0.9rem;
+		color: var(--s-col);
+		margin: 0 0 0.5rem 0;
+		letter-spacing: 0.5px;
+	}
+	.guest-info h3 {
+		font-size: 1.3rem;
+		margin: 0;
+		color: var(--p-col);
+		font-weight: 600;
 	}
 	.cover-title {
 		font-size: 2.8rem;
