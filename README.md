@@ -6,8 +6,8 @@
 - **Host:** localhost
 - **Port:** 3306
 - **Database:** wedding_db
-- **User:** wedding_user
-- **Password:** WeddingDB2024!
+- **User:** 
+- **Password:** 
 
 ### Files Ready
 - ✅ `.env` - Environment variables configured
