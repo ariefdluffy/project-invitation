@@ -1,0 +1,105 @@
+import { H as attr, U as escape_html, W as FILENAME, c as head, n as pop_element, r as push_element, u as stringify } from "../../../chunks/dev.js";
+//#region src/routes/register/+page.svelte
+_page[FILENAME] = "src/routes/register/+page.svelte";
+function _page($$renderer, $$props) {
+	$$renderer.component(($$renderer) => {
+		let { data, form } = $$props;
+		head("52fghe", $$renderer, ($$renderer) => {
+			$$renderer.title(($$renderer) => {
+				$$renderer.push(`<title>Daftar - ${escape_html(data.appName)}</title>`);
+			});
+			$$renderer.push(`<meta name="description"${attr("content", `Daftar akun ${stringify(data.appName)} untuk membuat undangan pernikahan digital`)}/>`);
+			push_element($$renderer, "meta", 8, 1);
+			pop_element();
+		});
+		$$renderer.push(`<div class="auth-page">`);
+		push_element($$renderer, "div", 11, 0);
+		$$renderer.push(`<div class="auth-card">`);
+		push_element($$renderer, "div", 12, 1);
+		$$renderer.push(`<h1>`);
+		push_element($$renderer, "h1", 13, 2);
+		$$renderer.push(`${escape_html(data.appName)}</h1>`);
+		pop_element();
+		$$renderer.push(` <p>`);
+		push_element($$renderer, "p", 14, 2);
+		$$renderer.push(`Buat akun untuk mulai membuat undangan</p>`);
+		pop_element();
+		$$renderer.push(` `);
+		if (form?.error) {
+			$$renderer.push("<!--[0-->");
+			$$renderer.push(`<div class="error-message">`);
+			push_element($$renderer, "div", 17, 3);
+			$$renderer.push(`${escape_html(form.error)}</div>`);
+			pop_element();
+		} else $$renderer.push("<!--[-1-->");
+		$$renderer.push(`<!--]--> <form method="POST">`);
+		push_element($$renderer, "form", 20, 2);
+		$$renderer.push(`<div class="form-group">`);
+		push_element($$renderer, "div", 21, 3);
+		$$renderer.push(`<label for="username">`);
+		push_element($$renderer, "label", 22, 4);
+		$$renderer.push(`Username</label>`);
+		pop_element();
+		$$renderer.push(` <input type="text" id="username" name="username" class="form-control" placeholder="masukkan username"${attr("value", form?.username ?? "")} required=""/>`);
+		push_element($$renderer, "input", 23, 4);
+		pop_element();
+		$$renderer.push(`</div>`);
+		pop_element();
+		$$renderer.push(` <div class="form-group">`);
+		push_element($$renderer, "div", 33, 3);
+		$$renderer.push(`<label for="email">`);
+		push_element($$renderer, "label", 34, 4);
+		$$renderer.push(`Email</label>`);
+		pop_element();
+		$$renderer.push(` <input type="email" id="email" name="email" class="form-control" placeholder="masukkan email"${attr("value", form?.email ?? "")} required=""/>`);
+		push_element($$renderer, "input", 35, 4);
+		pop_element();
+		$$renderer.push(`</div>`);
+		pop_element();
+		$$renderer.push(` <div class="form-group">`);
+		push_element($$renderer, "div", 45, 3);
+		$$renderer.push(`<label for="password">`);
+		push_element($$renderer, "label", 46, 4);
+		$$renderer.push(`Password</label>`);
+		pop_element();
+		$$renderer.push(` <input type="password" id="password" name="password" class="form-control" placeholder="minimal 6 karakter" required=""/>`);
+		push_element($$renderer, "input", 47, 4);
+		pop_element();
+		$$renderer.push(`</div>`);
+		pop_element();
+		$$renderer.push(` <div class="form-group">`);
+		push_element($$renderer, "div", 56, 3);
+		$$renderer.push(`<label for="confirmPassword">`);
+		push_element($$renderer, "label", 57, 4);
+		$$renderer.push(`Konfirmasi Password</label>`);
+		pop_element();
+		$$renderer.push(` <input type="password" id="confirmPassword" name="confirmPassword" class="form-control" placeholder="ulangi password" required=""/>`);
+		push_element($$renderer, "input", 58, 4);
+		pop_element();
+		$$renderer.push(`</div>`);
+		pop_element();
+		$$renderer.push(` <button type="submit" class="btn btn-primary">`);
+		push_element($$renderer, "button", 67, 3);
+		$$renderer.push(`Daftar</button>`);
+		pop_element();
+		$$renderer.push(`</form>`);
+		pop_element();
+		$$renderer.push(` <div class="auth-links">`);
+		push_element($$renderer, "div", 70, 2);
+		$$renderer.push(`Sudah punya akun? <a href="/login">`);
+		push_element($$renderer, "a", 71, 21);
+		$$renderer.push(`Masuk di sini</a>`);
+		pop_element();
+		$$renderer.push(`</div>`);
+		pop_element();
+		$$renderer.push(`</div>`);
+		pop_element();
+		$$renderer.push(`</div>`);
+		pop_element();
+	}, _page);
+}
+_page.render = function() {
+	throw new Error("Component.render(...) is no longer valid in Svelte 5. See https://svelte.dev/docs/svelte/v5-migration-guide#Components-are-no-longer-classes for more information");
+};
+//#endregion
+export { _page as default };

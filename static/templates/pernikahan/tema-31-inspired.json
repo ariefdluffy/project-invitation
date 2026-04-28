@@ -1,0 +1,20 @@
+{
+  "id": "tmpl-tema-31-inspired",
+  "name": "Tema 31 Inspired",
+  "category": "pernikahan",
+  "thumbnail": "https://images.unsplash.com/photo-1496307042754-b4aa456c4a2d?auto=format&fit=crop&w=600&q=80",
+  "description": "Romantic photo-centric layout with soft glass cards, floating ornaments, and cinematic typography for a modern classic wedding.",
+  "defaultContent": {
+    "title": "The Wedding of",
+    "groom_name": "Nama Mempelai Pria",
+    "bride_name": "Nama Mempelai Wanita",
+    "quote": "In the arithmetic of love, one plus one equals everything.",
+    "quote_source": "",
+    "love_story": "Kisah ini berawal dari pertemuan di bulan Januari 2020.\n\nSetelah menjalani perjalanan bersama, kami memutuskan melangkah ke jenjang pernikahan.\n\nDengan penuh rasa syukur, kami mengundang Anda untuk hadir di hari bahagia kami."
+  },
+  "primary_color": "#d4a574",
+  "secondary_color": "#1f2937",
+  "accent_color": "#fdf7ef",
+  "font_family": "Cormorant Garamond",
+  "layout_style": "romantic"
+}

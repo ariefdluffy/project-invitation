@@ -1,0 +1,27 @@
+<script lang="ts">
+  import SimpleEventLayout from "./SimpleEventLayout.svelte";
+
+  let { invitation, template, wishes = [], guestName = "", form } = $props();
+
+  const layout = {
+    titleFallback: "Undangan",
+    nameMode: "single",
+    primaryNameKey: "groom_name",
+    secondaryNameKey: "bride_name",
+    aboutTitle: "Tentang Acara",
+    aboutFallback: "Kami mengundang Anda untuk menghadiri acara ini.",
+    eventTitle: "Detail Acara",
+    primaryEventLabel: "Acara Utama",
+    secondaryEventLabel: "Sesi Lanjutan",
+    footerThanks: "Terima Kasih",
+  };
+</script>
+
+<SimpleEventLayout
+  {invitation}
+  {template}
+  {wishes}
+  {guestName}
+  {form}
+  {layout}
+/>

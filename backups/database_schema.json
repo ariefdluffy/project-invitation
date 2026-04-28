@@ -1,0 +1,616 @@
+{
+  "database": "wedding_db",
+  "version": "1.0",
+  "generated": "2026-04-25",
+  "tables": [
+    {
+      "name": "users",
+      "description": "Data pengguna aplikasi (admin & regular users)",
+      "columns": [
+        {
+          "name": "id",
+          "type": "VARCHAR(50)",
+          "constraint": "PRIMARY KEY",
+          "nullable": false,
+          "description": "UUID identifier"
+        },
+        {
+          "name": "username",
+          "type": "VARCHAR(50)",
+          "constraint": "UNIQUE",
+          "nullable": false,
+          "description": "Username untuk login"
+        },
+        {
+          "name": "email",
+          "type": "VARCHAR(100)",
+          "constraint": "UNIQUE",
+          "nullable": false,
+          "description": "Email unik pengguna"
+        },
+        {
+          "name": "password",
+          "type": "VARCHAR(255)",
+          "nullable": false,
+          "description": "Password terenkripsi (bcrypt)"
+        },
+        {
+          "name": "role",
+          "type": "ENUM('admin', 'user')",
+          "default": "user",
+          "description": "Role pengguna"
+        },
+        {
+          "name": "has_access",
+          "type": "TINYINT",
+          "default": 0,
+          "description": "0 = no access, 1 = has access"
+        },
+        {
+          "name": "payment_status",
+          "type": "VARCHAR(20)",
+          "default": "unpaid",
+          "description": "Status pembayaran: unpaid, pending, paid, inactive"
+        },
+        {
+          "name": "payment_method",
+          "type": "VARCHAR(50)",
+          "nullable": true,
+          "description": "Metode pembayaran terakhir"
+        },
+        {
+          "name": "invitation_limit",
+          "type": "INT",
+          "default": 1,
+          "description": "Jumlah undangan yang bisa dibuat"
+        },
+        {
+          "name": "guest_limit",
+          "type": "INT",
+          "default": 100,
+          "description": "Total kuota tamu untuk semua undangan"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "default": "CURRENT_TIMESTAMP",
+          "description": "Waktu pembuatan akun"
+        },
+        {
+          "name": "updated_at",
+          "type": "TIMESTAMP",
+          "default": "CURRENT_TIMESTAMP ON UPDATE",
+          "description": "Waktu update terakhir"
+        }
+      ]
+    },
+    {
+      "name": "templates",
+      "description": "Template desain undangan yang tersedia",
+      "columns": [
+        {
+          "name": "id",
+          "type": "VARCHAR(50)",
+          "constraint": "PRIMARY KEY",
+          "description": "UUID identifier"
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "description": "Nama template"
+        },
+        {
+          "name": "slug",
+          "type": "VARCHAR(100)",
+          "constraint": "UNIQUE",
+          "nullable": false,
+          "description": "URL-friendly identifier"
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "nullable": true,
+          "description": "Deskripsi template"
+        },
+        {
+          "name": "thumbnail",
+          "type": "VARCHAR(255)",
+          "nullable": true,
+          "description": "URL gambar preview template"
+        },
+        {
+          "name": "primary_color",
+          "type": "VARCHAR(10)",
+          "default": "#D4A574",
+          "description": "Warna primer (hex)"
+        },
+        {
+          "name": "secondary_color",
+          "type": "VARCHAR(10)",
+          "default": "#8B6F4E",
+          "description": "Warna sekunder (hex)"
+        },
+        {
+          "name": "accent_color",
+          "type": "VARCHAR(10)",
+          "default": "#F5E6D3",
+          "description": "Warna aksen (hex)"
+        },
+        {
+          "name": "font_family",
+          "type": "VARCHAR(50)",
+          "default": "Playfair Display",
+          "description": "Font utama template"
+        },
+        {
+          "name": "layout_style",
+          "type": "VARCHAR(30)",
+          "default": "classic",
+          "description": "Gaya layout: classic, modern, elegant, minimalis"
+        },
+        {
+          "name": "category",
+          "type": "VARCHAR(30)",
+          "default": "wedding",
+          "description": "Kategori: wedding, akad, reception, etc"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "default": "CURRENT_TIMESTAMP"
+        },
+        {
+          "name": "updated_at",
+          "type": "TIMESTAMP",
+          "default": "CURRENT_TIMESTAMP ON UPDATE"
+        }
+      ]
+    },
+    {
+      "name": "invitations",
+      "description": "Undangan yang dibuat oleh user",
+      "columns": [
+        {
+          "name": "id",
+          "type": "VARCHAR(50)",
+          "constraint": "PRIMARY KEY"
+        },
+        {
+          "name": "user_id",
+          "type": "VARCHAR(50)",
+          "constraint": "FOREIGN KEY users(id)",
+          "description": "Owner/pembuat undangan"
+        },
+        {
+          "name": "template_id",
+          "type": "VARCHAR(50)",
+          "constraint": "FOREIGN KEY templates(id)"
+        },
+        {
+          "name": "slug",
+          "type": "VARCHAR(100)",
+          "constraint": "UNIQUE",
+          "description": "URL path untuk share undangan"
+        },
+        {
+          "name": "groom_name",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "description": "Nama panggilan pengantin pria"
+        },
+        {
+          "name": "groom_full_name",
+          "type": "VARCHAR(255)",
+          "nullable": true
+        },
+        {
+          "name": "groom_parents",
+          "type": "TEXT",
+          "nullable": true,
+          "description": "Info orang tua (JSON format)"
+        },
+        {
+          "name": "groom_instagram",
+          "type": "VARCHAR(100)",
+          "nullable": true
+        },
+        {
+          "name": "groom_photo",
+          "type": "VARCHAR(255)",
+          "nullable": true,
+          "description": "URL foto pengantin pria"
+        },
+        {
+          "name": "bride_name",
+          "type": "VARCHAR(100)",
+          "nullable": false
+        },
+        {
+          "name": "bride_full_name",
+          "type": "VARCHAR(255)",
+          "nullable": true
+        },
+        {
+          "name": "bride_parents",
+          "type": "TEXT",
+          "nullable": true,
+          "description": "Info orang tua (JSON format)"
+        },
+        {
+          "name": "bride_instagram",
+          "type": "VARCHAR(100)",
+          "nullable": true
+        },
+        {
+          "name": "bride_photo",
+          "type": "VARCHAR(255)",
+          "nullable": true
+        },
+        {
+          "name": "quote",
+          "type": "TEXT",
+          "nullable": true,
+          "description": "Kutipan/quote untuk undangan"
+        },
+        {
+          "name": "quote_source",
+          "type": "VARCHAR(255)",
+          "nullable": true
+        },
+        {
+          "name": "akad_date",
+          "type": "DATE",
+          "nullable": true,
+          "description": "Tanggal akad nikah"
+        },
+        {
+          "name": "akad_time",
+          "type": "VARCHAR(50)",
+          "nullable": true,
+          "example": "09:00"
+        },
+        {
+          "name": "resepsi_date",
+          "type": "DATE",
+          "nullable": true
+        },
+        {
+          "name": "resepsi_time",
+          "type": "VARCHAR(50)",
+          "nullable": true
+        },
+        {
+          "name": "venue_name",
+          "type": "VARCHAR(255)",
+          "nullable": true
+        },
+        {
+          "name": "venue_address",
+          "type": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "venue_map_url",
+          "type": "TEXT",
+          "nullable": true,
+          "description": "Link Google Maps atau embed URL"
+        },
+        {
+          "name": "love_story",
+          "type": "LONGTEXT",
+          "nullable": true,
+          "description": "Cerita cinta mereka"
+        },
+        {
+          "name": "bank_accounts",
+          "type": "TEXT",
+          "nullable": true,
+          "description": "Data rekening untuk hadiah (JSON array)"
+        },
+        {
+          "name": "dress_code_colors",
+          "type": "TEXT",
+          "nullable": true,
+          "description": "Warna dress code yang direkomendasikan"
+        },
+        {
+          "name": "music_url",
+          "type": "TEXT",
+          "nullable": true,
+          "description": "URL lagu background"
+        },
+        {
+          "name": "background_image",
+          "type": "TEXT",
+          "nullable": true
+        },
+        {
+          "name": "gallery_images",
+          "type": "TEXT",
+          "nullable": true,
+          "description": "List URL foto (JSON array)"
+        },
+        {
+          "name": "is_published",
+          "type": "TINYINT",
+          "default": 0,
+          "description": "0 = draft, 1 = published"
+        },
+        {
+          "name": "view_count",
+          "type": "INT",
+          "default": 0,
+          "description": "Jumlah kali undangan dibuka"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "default": "CURRENT_TIMESTAMP"
+        },
+        {
+          "name": "updated_at",
+          "type": "TIMESTAMP",
+          "default": "CURRENT_TIMESTAMP ON UPDATE"
+        }
+      ]
+    },
+    {
+      "name": "guests",
+      "description": "Daftar tamu yang diundang per undangan",
+      "columns": [
+        {
+          "name": "id",
+          "type": "VARCHAR(50)",
+          "constraint": "PRIMARY KEY"
+        },
+        {
+          "name": "invitation_id",
+          "type": "VARCHAR(50)",
+          "constraint": "FOREIGN KEY invitations(id) ON DELETE CASCADE"
+        },
+        {
+          "name": "name",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "description": "Nama tamu"
+        },
+        {
+          "name": "slug",
+          "type": "VARCHAR(100)",
+          "description": "URL-friendly identifier untuk link khusus tamu"
+        },
+        {
+          "name": "is_attending",
+          "type": "TINYINT",
+          "default": 0,
+          "description": "0 = tidak hadir, 1 = hadir"
+        },
+        {
+          "name": "num_guests",
+          "type": "INT",
+          "default": 1,
+          "description": "Jumlah tamu yang akan hadir"
+        },
+        {
+          "name": "has_responded",
+          "type": "TINYINT",
+          "default": 0,
+          "description": "0 = belum RSVP, 1 = sudah RSVP"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "default": "CURRENT_TIMESTAMP"
+        }
+      ]
+    },
+    {
+      "name": "wishes",
+      "description": "Komentar/ucapan dari tamu",
+      "columns": [
+        {
+          "name": "id",
+          "type": "VARCHAR(50)",
+          "constraint": "PRIMARY KEY"
+        },
+        {
+          "name": "invitation_id",
+          "type": "VARCHAR(50)",
+          "constraint": "FOREIGN KEY invitations(id) ON DELETE CASCADE"
+        },
+        {
+          "name": "guest_name",
+          "type": "VARCHAR(100)",
+          "nullable": false,
+          "description": "Nama tamu yang memberikan ucapan"
+        },
+        {
+          "name": "message",
+          "type": "TEXT",
+          "nullable": false,
+          "description": "Isi ucapan/komentar"
+        },
+        {
+          "name": "is_attending",
+          "type": "VARCHAR(20)",
+          "default": "hadir",
+          "description": "Status kehadiran tamu"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "default": "CURRENT_TIMESTAMP"
+        }
+      ]
+    },
+    {
+      "name": "settings",
+      "description": "Konfigurasi aplikasi (key-value store)",
+      "columns": [
+        {
+          "name": "key",
+          "type": "VARCHAR(100)",
+          "constraint": "PRIMARY KEY",
+          "description": "Setting identifier"
+        },
+        {
+          "name": "value",
+          "type": "LONGTEXT",
+          "nullable": false,
+          "description": "Nilai setting (bisa JSON)"
+        },
+        {
+          "name": "updated_at",
+          "type": "TIMESTAMP",
+          "default": "CURRENT_TIMESTAMP ON UPDATE"
+        }
+      ],
+      "default_keys": [
+        {
+          "key": "premium_price",
+          "example": "149000",
+          "description": "Harga paket premium (Rp)"
+        },
+        {
+          "key": "addon_guest_price",
+          "example": "19000",
+          "description": "Harga add-on per tamu (Rp)"
+        },
+        {
+          "key": "addon_guest_quantity",
+          "example": "50",
+          "description": "Jumlah tamu per add-on"
+        },
+        {
+          "key": "app_name",
+          "example": "Wedding.id",
+          "description": "Nama aplikasi"
+        },
+        {
+          "key": "payment_instructions",
+          "example": "Transfer ke Rekening BCA 123456 a.n Admin",
+          "description": "Instruksi pembayaran manual"
+        },
+        {
+          "key": "default_music_url",
+          "example": "https://example.com/music.mp3",
+          "description": "URL musik default untuk undangan baru"
+        },
+        {
+          "key": "midtrans_server_key",
+          "description": "Midtrans payment gateway server key"
+        },
+        {
+          "key": "midtrans_client_key",
+          "description": "Midtrans payment gateway client key"
+        },
+        {
+          "key": "midtrans_is_production",
+          "example": "0",
+          "description": "0 = sandbox, 1 = production"
+        }
+      ]
+    },
+    {
+      "name": "orders",
+      "description": "Riwayat pesanan dan pembayaran",
+      "columns": [
+        {
+          "name": "id",
+          "type": "VARCHAR(50)",
+          "constraint": "PRIMARY KEY"
+        },
+        {
+          "name": "user_id",
+          "type": "VARCHAR(50)",
+          "constraint": "FOREIGN KEY users(id) ON DELETE CASCADE"
+        },
+        {
+          "name": "type",
+          "type": "VARCHAR(50)",
+          "nullable": true,
+          "example": "premium, addon",
+          "description": "Tipe pesanan"
+        },
+        {
+          "name": "amount",
+          "type": "INT",
+          "nullable": false,
+          "description": "Jumlah pembayaran dalam Rp"
+        },
+        {
+          "name": "status",
+          "type": "VARCHAR(20)",
+          "default": "pending",
+          "description": "pending, paid, failed, cancelled"
+        },
+        {
+          "name": "payment_method",
+          "type": "VARCHAR(50)",
+          "nullable": true,
+          "example": "qris, dana, gopay, bank_transfer"
+        },
+        {
+          "name": "order_id",
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "description": "Order ID internal"
+        },
+        {
+          "name": "midtrans_transaction_id",
+          "type": "VARCHAR(100)",
+          "nullable": true,
+          "description": "Transaction ID dari Midtrans"
+        },
+        {
+          "name": "created_at",
+          "type": "TIMESTAMP",
+          "default": "CURRENT_TIMESTAMP"
+        },
+        {
+          "name": "updated_at",
+          "type": "TIMESTAMP",
+          "default": "CURRENT_TIMESTAMP ON UPDATE"
+        }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "from": "invitations",
+      "to": "users",
+      "type": "Many-to-One",
+      "field": "user_id",
+      "description": "Setiap undangan dimiliki oleh satu user"
+    },
+    {
+      "from": "invitations",
+      "to": "templates",
+      "type": "Many-to-One",
+      "field": "template_id",
+      "description": "Setiap undangan menggunakan satu template"
+    },
+    {
+      "from": "guests",
+      "to": "invitations",
+      "type": "Many-to-One",
+      "field": "invitation_id",
+      "description": "Setiap tamu terdaftar untuk satu undangan"
+    },
+    {
+      "from": "wishes",
+      "to": "invitations",
+      "type": "Many-to-One",
+      "field": "invitation_id",
+      "description": "Setiap ucapan untuk satu undangan"
+    },
+    {
+      "from": "orders",
+      "to": "users",
+      "type": "Many-to-One",
+      "field": "user_id",
+      "description": "Setiap pesanan milik satu user"
+    }
+  ]
+}

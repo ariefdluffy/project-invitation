@@ -1,0 +1,15 @@
+{
+  "id": "tmpl-arisan-keluarga",
+  "name": "Arisan Keluarga",
+  "category": "gathering",
+  "thumbnail": "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80",
+  "description": "Template santai dan hangat untuk acara kumpul keluarga atau arisan.",
+  "defaultContent": {
+    "title": "Undangan Gathering/Arisan",
+    "groom_name": "Nama Acara",
+    "bride_name": "Nama Penyelenggara"
+  },
+  "primary_color": "#78350f",
+  "secondary_color": "#fde68a",
+  "accent_color": "#fefce8"
+}

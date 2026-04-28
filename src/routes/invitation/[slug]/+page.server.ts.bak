@@ -1,0 +1,26 @@
+import type { PageServerLoad } from './$types';
+import { db } from '$lib/server/db';
+
+export const load: PageServerLoad = async ({ params }) => {
+	const { slug } = params;
+	const invitation = await db.invitation.findUnique({
+		where: { slug },
+		include: {
+			template: true,
+		},
+	});
+
+	if (!invitation) {
+		return {
+			status: 404,
+			error: new Error('Undangan tidak ditemukan'),
+		};
+	}
+
+	return {
+		invitation,
+		template: invitation.template,
+		wishes: [], // TODO: fetch wishes if needed
+		guestName: '', // optional
+	};
+};
