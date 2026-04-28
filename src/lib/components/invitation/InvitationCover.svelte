@@ -41,12 +41,10 @@
 				: ""}
 		</div>
 
-		{#if guestName}
-			<div class="guest-info">
-				<p>Kepada Yth. Bapak/Ibu/Saudara/i</p>
-				<h3>{guestName}</h3>
-			</div>
-		{/if}
+		<div class="guest-info">
+			<p>Kepada Yth. Bapak/Ibu/Saudara/i</p>
+			<h3>{guestName || "Tamu Undangan"}</h3>
+		</div>
 
 		<button class="btn-open" onclick={openInvitation}>
 			<svg
