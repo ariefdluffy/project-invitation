@@ -36,6 +36,7 @@
 		category === "wedding" || category === "pernikahan" || category === "anniversary"
 	);
 
+
 	let isOpened = $state(false);
 	let randomBg = $state("");
 

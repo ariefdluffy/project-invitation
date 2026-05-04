@@ -8,6 +8,9 @@
   let isPlaying = $state(false);
   let audioRef = $state<HTMLAudioElement | null>(null);
   let randomBg = $state("");
+  let scrollCards = $state<NodeListOf<Element> | null>(null);
+  let observer = $state<IntersectionObserver | null>(null);
+  let useAnimations = $state(false);
 
   const customContent = $derived.by(() => {
     const raw = invitation?.custom_content;
@@ -18,6 +21,10 @@
     } catch {
       return {} as Record<string, any>;
     }
+  });
+
+  const customStyles = $derived.by(() => {
+    return template?.custom_styles || {};
   });
 
   const titleText = $derived.by(
@@ -62,6 +69,15 @@
     document.body.style.overflow = isOpened ? "auto" : "hidden";
   });
 
+  $effect(() => {
+    if (isOpened && useAnimations) {
+      setTimeout(() => {
+        initScrollAnimations();
+        updateGalleryBackgrounds();
+      }, 300);
+    }
+  });
+
   function openInvitation() {
     isOpened = true;
     if (audioRef) {
@@ -100,6 +116,75 @@
       toast.error("Gagal menyalin");
     }
   }
+
+  function initScrollAnimations() {
+    if (typeof window === "undefined") return;
+    if (!useAnimations) return;
+
+    const allCards = document.querySelectorAll(".scroll-card");
+    allCards.forEach((card) => {
+      card.classList.remove("animate-in");
+    });
+
+    const revealVisible = () => {
+      allCards.forEach((card) => {
+        const rect = card.getBoundingClientRect();
+        const windowHeight = window.innerHeight;
+        if (rect.top < windowHeight * 0.85 && rect.bottom > 0) {
+          card.classList.add("animate-in");
+        }
+      });
+    };
+
+    if (!("IntersectionObserver" in window)) {
+      allCards.forEach((card) => card.classList.add("animate-in"));
+      return;
+    }
+
+    scrollCards = document.querySelectorAll(".scroll-card");
+    observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("animate-in");
+          }
+        });
+      },
+      {
+        threshold: 0.2,
+        rootMargin: "0px 0px -100px 0px",
+      },
+    );
+
+    scrollCards.forEach((card) => {
+      observer?.observe(card);
+    });
+
+    revealVisible();
+
+    // Fallback: ensure cards become visible even if observer misses initial paint.
+    setTimeout(() => {
+      const animatedCount = document.querySelectorAll(
+        ".scroll-card.animate-in",
+      ).length;
+      if (animatedCount === 0) {
+        allCards.forEach((card) => card.classList.add("animate-in"));
+      }
+    }, 600);
+  }
+
+  function updateGalleryBackgrounds() {
+    if (galleryImages.length > 0) {
+      // Set background images for gallery items
+      const galleryItems = document.querySelectorAll(".gallery-item");
+      galleryItems.forEach((item, index) => {
+        if (galleryImages[index]) {
+          (item as HTMLElement).style.backgroundImage =
+            `url('${galleryImages[index]}')`;
+        }
+      });
+    }
+  }
 </script>
 
 <svelte:head>
@@ -119,7 +204,7 @@
 <div
   class="tema31"
   style="{cssVars} {randomBg
-    ? `background: url('${randomBg}') center/cover fixed no-repeat;`
+    ? `--bg-url: url('${randomBg}'); background: url('${randomBg}') center/cover fixed no-repeat;`
     : ''}"
 >
   <div class="grain"></div>
@@ -159,8 +244,8 @@
   </div>
 
   {#if isOpened}
-    <main class="content">
-      <section class="hero">
+    <main class="content" class:use-animations={useAnimations}>
+      <section class="hero scroll-card">
         <p class="hero-subtitle">Save the Date</p>
         <h2 class="hero-title">
           {invitation?.bride_name} <span>&</span>
@@ -169,7 +254,7 @@
         <p class="hero-date">{formatDate(invitation?.akad_date)}</p>
       </section>
 
-      <section class="quote-card">
+      <section class="quote-card scroll-card">
         <h3>
           {invitation?.quote ||
             "Dengan penuh cinta kami mengundang Anda hadir di hari istimewa kami."}
@@ -179,7 +264,7 @@
         {/if}
       </section>
 
-      <section class="couple">
+      <section class="couple scroll-card">
         <div class="couple-card">
           <div
             class="image-frame"
@@ -202,7 +287,7 @@
         </div>
       </section>
 
-      <section class="event-grid">
+      <section class="event-grid scroll-card">
         <div class="event-card">
           <h4>Akad Nikah</h4>
           <p>{formatDate(invitation?.akad_date)}</p>
@@ -230,7 +315,7 @@
       </section>
 
       {#if galleryImages.length > 0}
-        <section class="gallery">
+        <section class="gallery scroll-card">
           <h3>Galeri Foto</h3>
           <div class="gallery-grid">
             {#each galleryImages as img}
@@ -244,7 +329,7 @@
       {/if}
 
       {#if invitation?.love_story}
-        <section class="story">
+        <section class="story scroll-card">
           <h3>Love Story</h3>
           {#each invitation.love_story.split("\n\n") as paragraph}
             <p>{paragraph}</p>
@@ -252,7 +337,7 @@
         </section>
       {/if}
 
-      <section class="rsvp">
+      <section class="rsvp scroll-card">
         <h3>RSVP & Wishes</h3>
         <div class="form-card">
           {#if form?.success}
@@ -344,6 +429,16 @@
         rgba(255, 255, 255, 0.92)
       );
   }
+  .tema31::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    background: var(--bg-url) center/cover fixed no-repeat;
+    filter: blur(1px);
+    transform: scale(1.03);
+    opacity: 0.25;
+  }
   .grain {
     position: fixed;
     inset: 0;
@@ -357,7 +452,7 @@
     width: 220px;
     height: 220px;
     border-radius: 45% 55% 65% 35%;
-    filter: blur(10px);
+    filter: blur(2px);
     opacity: 0.25;
     animation: drift 18s ease-in-out infinite;
     z-index: 0;
@@ -403,14 +498,14 @@
     align-items: center;
     justify-content: center;
     z-index: 5;
-    backdrop-filter: blur(4px);
+    backdrop-filter: blur(2px);
     transition: transform 0.8s ease;
   }
   .cover.open {
     transform: translateY(-110%);
   }
   .cover-card {
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.82);
     padding: 3rem 2.5rem;
     border-radius: 24px;
     border: 1px solid rgba(212, 165, 116, 0.35);
@@ -498,7 +593,7 @@
     color: var(--p-col);
   }
   .quote-card {
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.82);
     border-radius: 22px;
     padding: 2rem;
     box-shadow: 0 12px 40px rgba(31, 41, 55, 0.08);
@@ -510,7 +605,7 @@
     gap: 1.5rem;
   }
   .couple-card {
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.82);
     border-radius: 22px;
     padding: 1.8rem;
     text-align: center;
@@ -536,7 +631,7 @@
     gap: 1.2rem;
   }
   .event-card {
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.84);
     border-radius: 18px;
     padding: 1.5rem;
     box-shadow: 0 10px 24px rgba(31, 41, 55, 0.08);
@@ -550,7 +645,7 @@
     text-decoration: none;
   }
   .gallery {
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.82);
     border-radius: 22px;
     padding: 2rem;
   }
@@ -567,13 +662,13 @@
     box-shadow: 0 10px 24px rgba(31, 41, 55, 0.15);
   }
   .story {
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.82);
     border-radius: 22px;
     padding: 2rem;
     line-height: 1.7;
   }
   .rsvp {
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.82);
     border-radius: 22px;
     padding: 2rem;
   }
@@ -591,7 +686,7 @@
     margin-top: 1rem;
   }
   .wish-card {
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.84);
     border-radius: 12px;
     padding: 0.8rem;
     margin-bottom: 0.6rem;
@@ -604,7 +699,7 @@
     background: rgba(212, 165, 116, 0.2);
   }
   .gift {
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.82);
     border-radius: 22px;
     padding: 2rem;
   }
@@ -616,7 +711,7 @@
   .gift-card {
     padding: 1.2rem;
     border-radius: 16px;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.84);
     box-shadow: 0 10px 22px rgba(31, 41, 55, 0.08);
   }
   .acc-num {
@@ -654,6 +749,111 @@
   @media (max-width: 720px) {
     .cover-title {
       flex-direction: column;
+    }
+  }
+
+  /* Scroll Animations */
+  .scroll-card {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  .content.use-animations .scroll-card {
+    opacity: 0;
+    transform: translateY(60px) scale(0.95);
+    transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    will-change: opacity, transform;
+  }
+
+  .content.use-animations .scroll-card.animate-in {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  /* Staggered animations with delays */
+  .content.use-animations .scroll-card:nth-child(1) {
+    transition-delay: 0.1s;
+  }
+  .content.use-animations .scroll-card:nth-child(2) {
+    transition-delay: 0.3s;
+  }
+  .content.use-animations .scroll-card:nth-child(3) {
+    transition-delay: 0.5s;
+  }
+  .content.use-animations .scroll-card:nth-child(4) {
+    transition-delay: 0.7s;
+  }
+  .content.use-animations .scroll-card:nth-child(5) {
+    transition-delay: 0.9s;
+  }
+  .content.use-animations .scroll-card:nth-child(6) {
+    transition-delay: 1.1s;
+  }
+
+  /* Gallery background fix */
+  .gallery-item {
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+  }
+
+  /* Glass effect for cards */
+  /* .glass-card {
+    background: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.84);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  } */
+
+  /* Floating elements animation */
+  .petal {
+    position: fixed;
+    pointer-events: none;
+    animation: float 20s infinite linear;
+    z-index: 1;
+  }
+
+  .petal-one {
+    top: 10%;
+    left: 10%;
+    animation-delay: 0s;
+  }
+
+  .petal-two {
+    top: 20%;
+    right: 10%;
+    animation-delay: 5s;
+  }
+
+  .petal-three {
+    bottom: 20%;
+    left: 20%;
+    animation-delay: 10s;
+  }
+
+  @keyframes float {
+    0% {
+      transform: translateY(0) rotate(0deg);
+    }
+    33% {
+      transform: translateY(-20px) rotate(120deg);
+    }
+    66% {
+      transform: translateY(-40px) rotate(240deg);
+    }
+    100% {
+      transform: translateY(0) rotate(360deg);
+    }
+  }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .content.use-animations .scroll-card {
+      transform: translateY(30px);
+    }
+
+    .content.use-animations .scroll-card.animate-in {
+      transform: translateY(0);
     }
   }
 </style>

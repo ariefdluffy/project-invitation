@@ -382,278 +382,47 @@ export async function seedTemplates(): Promise<void> {
 	await ensureGuestLimitColumn();
 	await ensureTemplateCategoryColumn();
 
+	// Get templates from filesystem
+	const fsTemplates = await getTemplates();
+	if (fsTemplates.length === 0) {
+		console.log('[Server] No templates found in filesystem. Seeding process skipped.');
+		return;
+	}
+
+	console.log(`[Server] Found ${fsTemplates.length} templates in filesystem. Seeding to database...`);
+
 	// Clear old templates to fix broken thumbnails and naming conflicts
 	console.log('[Server] Clearing and re-seeding templates...');
 	await db.execute("SET FOREIGN_KEY_CHECKS = 0;");
 	await db.execute("TRUNCATE TABLE templates;");
 	await db.execute("SET FOREIGN_KEY_CHECKS = 1;");
 
-	const templates = [
-		{
-			id: 'tmpl-javanese',
-			name: 'Javanese Elegance',
-			slug: 'javanese-elegance',
-			description: 'Template elegan dengan nuansa budaya Jawa yang indah, ornamen batik, dan warna emas klasik.',
-			thumbnail: 'https://images.unsplash.com/photo-1596701062351-8c2c14d1fdd0?auto=format&fit=crop&w=600&q=80',
-			primary_color: '#8B6914',
-			secondary_color: '#D4A574',
-			accent_color: '#FDF6E3',
-			font_family: 'Playfair Display',
-			layout_style: 'classic',
-			category: 'wedding'
-		},
-		{
-			id: 'tmpl-garden',
-			name: 'Garden Romance',
-			slug: 'garden-romance',
-			description: 'Template romantis dengan tema taman bunga, warna pastel lembut, dan ilustrasi floral watercolor.',
-			thumbnail: 'https://images.unsplash.com/photo-1522673607200-164883eeca48?auto=format&fit=crop&w=600&q=80',
-			primary_color: '#8B4D6E',
-			secondary_color: '#D4849B',
-			accent_color: '#FFF0F5',
-			font_family: 'Great Vibes',
-			layout_style: 'romantic',
-			category: 'wedding'
-		},
-		{
-			id: 'tmpl-modern',
-			name: 'Modern Minimalist',
-			slug: 'modern-minimalist',
-			description: 'Template modern dan minimalis dengan desain bersih, tipografi bold, dan animasi smooth.',
-			thumbnail: 'https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?auto=format&fit=crop&w=600&q=80',
-			primary_color: '#2C3E50',
-			secondary_color: '#E67E22',
-			accent_color: '#ECF0F1',
-			font_family: 'Montserrat',
-			layout_style: 'modern',
-			category: 'general'
-		},
-		{
-			id: 'tmpl-royal',
-			name: 'Royal Midnight',
-			slug: 'royal-midnight',
-			description: 'Perpaduan mewah warna biru tengah malam dan emas champagne, menciptakan kesan agung dan eksklusif.',
-			thumbnail: 'https://images.unsplash.com/photo-1510076857177-7470076d4098?auto=format&fit=crop&w=600&q=80',
-			primary_color: '#1a1a2e',
-			secondary_color: '#c0a080',
-			accent_color: '#ffffff',
-			font_family: 'Cinzel',
-			layout_style: 'royal',
-			category: 'wedding'
-		},
-		{
-			id: 'tmpl-earth',
-			name: 'Minimalist Earth',
-			slug: 'minimalist-earth',
-			description: 'Tema warna bumi (terracotta & sage) yang menenangkan, memberikan kesan hangat, organik, dan estetik.',
-			thumbnail: 'https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=600&q=80',
-			primary_color: '#7c6a53',
-			secondary_color: '#a3b18a',
-			accent_color: '#fefae0',
-			font_family: 'Lora',
-			layout_style: 'minimalist',
-			category: 'general'
-		},
-		{
-			id: 'tmpl-classic',
-			name: 'Classic Elegance',
-			slug: 'classic-elegance',
-			description: 'Desain abadi dengan perpaduan warna putih murni dan emas metalik. Memberikan kesan bersih, mewah, dan sangat profesional.',
-			thumbnail: 'https://images.unsplash.com/photo-1519225495810-751bd131c90d?auto=format&fit=crop&w=600&q=80',
-			primary_color: '#ffffff',
-			secondary_color: '#d4af37',
-			accent_color: '#2c2c2c',
-			font_family: 'Playfair Display',
-			layout_style: 'classic',
-			category: 'wedding'
-		},
-		{
-			id: 'tmpl-vintage',
-			name: 'Vintage Rustic',
-			slug: 'vintage-rustic',
-			description: 'Nuansa hangat kayu dan kertas kraft dengan sentuhan retro. Cocok untuk pernikahan tema outdoor atau barn wedding.',
-			thumbnail: 'https://images.unsplash.com/photo-1458007683879-47560d7e33c3?auto=format&fit=crop&w=600&q=80',
-			primary_color: '#5d4037',
-			secondary_color: '#d7ccc8',
-			accent_color: '#8d6e63',
-			font_family: 'Special Elite',
-			layout_style: 'vintage',
-			category: 'wedding'
-		},
-		{
-			id: 'tmpl-celestial',
-			name: 'Celestial Night',
-			slug: 'celestial-night',
-			description: 'Terinspirasi dari keindahan langit malam berbintang. Perpaduan warna navy tua dan silver yang magis.',
-			thumbnail: 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80',
-			primary_color: '#0f172a',
-			secondary_color: '#94a3b8',
-			accent_color: '#f8fafc',
-			font_family: 'Cinzel Decorative',
-			layout_style: 'celestial',
-			category: 'wedding'
-		},
-		{
-			id: 'tmpl-tropical',
-			name: 'Tropical Breeze',
-			slug: 'tropical-breeze',
-			description: 'Segar dan ceria dengan palet warna hijau botani dan teal. Sempurna untuk pernikahan tema pantai atau musim panas.',
-			thumbnail: 'https://images.unsplash.com/photo-1512100356132-d39918387e94?auto=format&fit=crop&w=600&q=80',
-			primary_color: '#065f46',
-			secondary_color: '#2dd4bf',
-			accent_color: '#f0fdfa',
-			font_family: 'Outfit',
-			layout_style: 'tropical',
-			category: 'wedding'
-		},
-		{
-			id: 'tmpl-luxury',
-			name: 'Luxury Emerald',
-			slug: 'luxury-emerald',
-			description: 'Kombinasi berkelas antara hijau zamrud tua dan emas murni. Memberikan aura kemewahan yang mendalam.',
-			thumbnail: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&w=600&q=80',
-			primary_color: '#047857',
-			secondary_color: '#f59e0b',
-			accent_color: '#fffbeb',
-			font_family: 'Cormorant Garamond',
-			layout_style: 'luxury',
-			category: 'wedding'
-		},
-		{
-			id: 'tmpl-romantic',
-			name: 'Soft Lavender',
-			slug: 'soft-lavender',
-			description: 'Lembut dan puitis dengan gradasi warna lavender dan putih. Memberikan kesan damai dan penuh cinta.',
-			thumbnail: 'https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=600&q=80',
-			primary_color: '#7e22ce',
-			secondary_color: '#e9d5ff',
-			accent_color: '#faf5ff',
-			font_family: 'Alex Brush',
-			layout_style: 'romantic',
-			category: 'wedding'
-		},
-		{
-			id: 'tmpl-khitan-joy',
-			name: 'Joyful Sunatan',
-			slug: 'joyful-sunatan',
-			description: 'Ceria dan hangat dengan hijau segar dan aksen emas — pas untuk undangan khitan, tasyakuran, atau syukuran anak.',
-			thumbnail: 'https://images.unsplash.com/photo-1604881991720-f91add269bed?auto=format&fit=crop&w=600&q=80',
-			primary_color: '#166534',
-			secondary_color: '#facc15',
-			accent_color: '#f0fdf4',
-			font_family: 'Montserrat',
-			layout_style: 'modern',
-			category: 'khitan'
-		},
-		{
-			id: 'tmpl-aqiqah-soft',
-			name: 'Aqiqah Blush',
-			slug: 'aqiqah-blush',
-			description: 'Lembut dengan krem dan blush pink, nuansa menggemaskan untuk aqiqah dan selamatan kelahiran.',
-			thumbnail: 'https://images.unsplash.com/photo-1519689680058-324335c77eba?auto=format&fit=crop&w=600&q=80',
-			primary_color: '#9d174d',
-			secondary_color: '#fbcfe8',
-			accent_color: '#fff1f2',
-			font_family: 'Cormorant Garamond',
-			layout_style: 'romantic',
-			category: 'aqiqah'
-		},
-		{
-			id: 'tmpl-anniversary-velvet',
-			name: 'Anniversary Velvet',
-			slug: 'anniversary-velvet',
-			description: 'Merah burgundy dan emas lembut — elegan untuk resepsi ulang tahun pernikahan atau milestone bersama pasangan.',
-			thumbnail: 'https://images.unsplash.com/photo-1529636799528-941f294af16f?auto=format&fit=crop&w=600&q=80',
-			primary_color: '#7f1d1d',
-			secondary_color: '#d4a574',
-			accent_color: '#fef2f2',
-			font_family: 'Playfair Display',
-			layout_style: 'classic',
-			category: 'anniversary'
-        },
-        {
-            id: 'tmpl-birthday-pop',
-            name: 'Birthday Confetti',
-            slug: 'birthday-confetti',
-            description: 'Warna-warni ceria dan kontras tegas — cocok untuk pesta ulang tahun anak maupun dewasa.',
-            thumbnail: 'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=600&q=80',
-            primary_color: '#7c3aed',
-            secondary_color: '#f472b6',
-            accent_color: '#faf5ff',
-            font_family: 'Outfit',
-            layout_style: 'modern',
-            category: 'birthday'
-        },
-        {
-            id: 'tmpl-3d-motion',
-            name: '3D Motion',
-            slug: '3d-motion',
-            description: 'A dynamic 3D animated background with floating elements and particle effects.',
-            thumbnail: null,
-            primary_color: '#0066FF',
-            secondary_color: '#00FFCC',
-            accent_color: '#F5E6D3',
-            font_family: 'Arial, sans-serif',
-            layout_style: 'modern',
-            category: 'wedding'
-        },
-		{
-			id: 'tmpl-gathering-bistro',
-			name: 'Gathering Bistro',
-			slug: 'gathering-bistro',
-			description: 'Hangat seperti kafe: terracotta dan krem. Cocok untuk arisan, reunion keluarga, atau bukber.',
-			thumbnail: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80',
-			primary_color: '#9a3412',
-			secondary_color: '#fdba74',
-			accent_color: '#fff7ed',
-			font_family: 'Lora',
-			layout_style: 'vintage',
-			category: 'gathering'
-		},
-		{
-			id: 'tmpl-corporate-summit',
-			name: 'Summit Corporate',
-			slug: 'summit-corporate',
-			description: 'Bersih dan profesional dengan slate dan biru — untuk seminar, launching, atau undangan formal perusahaan.',
-			thumbnail: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80',
-			primary_color: '#1e293b',
-			secondary_color: '#38bdf8',
-			accent_color: '#f8fafc',
-			font_family: 'Montserrat',
-			layout_style: 'modern',
-			category: 'corporate'
-		}
-	];
+	const insertQuery = `
+		INSERT INTO templates (id, name, slug, description, thumbnail, primary_color, secondary_color, accent_color, font_family, layout_style, category)
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+	`;
 
-	for (const t of templates) {
-		await db.execute(
-			`INSERT INTO templates (id, name, slug, description, thumbnail, primary_color, secondary_color, accent_color, font_family, layout_style, category) 
-			 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-			 ON DUPLICATE KEY UPDATE 
-			 	thumbnail = VALUES(thumbnail),
-			 	name = VALUES(name),
-			 	description = VALUES(description),
-			 	primary_color = VALUES(primary_color),
-			 	secondary_color = VALUES(secondary_color),
-			 	accent_color = VALUES(accent_color),
-			 	font_family = VALUES(font_family),
-			 	layout_style = VALUES(layout_style),
-			 	category = VALUES(category)`,
-			[
-				t.id,
-				t.name,
-				t.slug,
-				t.description,
-				t.thumbnail,
-				t.primary_color,
-				t.secondary_color,
-				t.accent_color,
-				t.font_family,
-				t.layout_style,
-				t.category
-			]
-		);
+	for (const tmpl of fsTemplates) {
+		try {
+			await db.execute(insertQuery, [
+				tmpl.id,
+				tmpl.name,
+				tmpl.id, // Using id as slug for consistency
+				tmpl.description || '',
+				tmpl.thumbnail || '',
+				tmpl.primary_color || '#D4A574',
+				tmpl.secondary_color || '#8B6F4E',
+				tmpl.accent_color || '#F5E6D3',
+				tmpl.font_family || 'Playfair Display',
+				tmpl.layout_style || 'classic',
+				tmpl.category
+			]);
+		} catch (error) {
+			console.error(`[Server] Error seeding template ${tmpl.id}:`, error);
+		}
 	}
+
+	console.log('[Server] Template seeding completed.');
 }
 
 export async function seedSettings(): Promise<void> {

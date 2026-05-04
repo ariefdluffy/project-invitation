@@ -34,6 +34,8 @@
 	let groomPreview = $state<string | null>(null);
 	let bgPreviews = $state<string[]>([]);
 	let galleryPreviews = $state<string[]>([]);
+	const MAX_FILE_SIZE = 1024 * 1024;
+	const MAX_FILE_SIZE_LABEL = '1MB';
     
     // Fix for Tab Error: Ensure customContent is initialized
     let customContent = $state(
@@ -57,11 +59,17 @@
 	function handleFileChange(e: Event, type: string) {
 		const input = e.target as HTMLInputElement;
 		if (!input.files || input.files.length === 0) return;
+		const file = input.files[0];
+		if (file.size > MAX_FILE_SIZE) {
+			toast.error(`Ukuran file melebihi batas ${MAX_FILE_SIZE_LABEL}.`);
+			input.value = '';
+			return;
+		}
 		
 		if (type === 'bride') {
-			bridePreview = URL.createObjectURL(input.files[0]);
+			bridePreview = URL.createObjectURL(file);
 		} else if (type === 'groom') {
-			groomPreview = URL.createObjectURL(input.files[0]);
+			groomPreview = URL.createObjectURL(file);
 		}
 	}
 

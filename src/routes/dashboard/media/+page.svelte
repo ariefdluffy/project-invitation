@@ -13,11 +13,20 @@ let uploadProgress = $state(0);
 let uploadMessage = $state({ type: '', text: '' });
 let fileInput: HTMLInputElement;
 let selectedPreview = $state<string | null>(null);
+const MAX_FILE_SIZE = 1024 * 1024;
+const MAX_FILE_SIZE_LABEL = '1MB';
 
 function onFileSelect(e: Event) {
     const input = e.target as HTMLInputElement;
     if (input.files && input.files[0]) {
-        selectedPreview = URL.createObjectURL(input.files[0]);
+        const file = input.files[0];
+        if (file.size > MAX_FILE_SIZE) {
+            uploadMessage = { type: 'error', text: `Ukuran file melebihi batas ${MAX_FILE_SIZE_LABEL}.` };
+            input.value = '';
+            selectedPreview = null;
+            return;
+        }
+        selectedPreview = URL.createObjectURL(file);
         uploadMessage = { type: '', text: '' };
     }
 }
@@ -37,6 +46,12 @@ function handleUpload(event: Event) {
     const formData = new FormData(formEl);
     const file = formData.get('file') as File;
     if (!file || file.size === 0) return;
+    if (file.size > MAX_FILE_SIZE) {
+        uploadMessage = { type: 'error', text: `Ukuran file melebihi batas ${MAX_FILE_SIZE_LABEL}.` };
+        if (fileInput) fileInput.value = '';
+        selectedPreview = null;
+        return;
+    }
 
     isUploading = true;
     uploadProgress = 0;
@@ -120,7 +135,7 @@ class="file-input"
 {:else}
 <div class="upload-icon">📁</div>
 <p>Pilih foto atau drag & drop ke sini</p>
-<span class="upload-hint">Maksimal 5MB. Format: JPG, PNG</span>
+<span class="upload-hint">Maksimal 1MB. Format: JPG, PNG</span>
 {/if}
 </div>
 </div>

@@ -1,5 +1,6 @@
 import type { PageServerLoad, Actions } from './$types';
 import { error, fail, redirect } from '@sveltejs/kit';
+import { env } from '$env/dynamic/private';
 import { getInvitationById, updateInvitation, getGuestsByInvitation, getWishesByInvitation, addGuest, deleteGuest, deleteInvitation, getTemplates } from '$lib/server/invitations';
 
 export const load: PageServerLoad = async ({ params, locals }) => {
@@ -48,6 +49,11 @@ export const actions: Actions = {
 
 			// Handle File Uploads
 			if (value instanceof File && value.size > 0) {
+				const maxFileSize = Number(env.MAX_FILE_SIZE || 1048576);
+				if (value.size > maxFileSize) {
+					return fail(400, { error: 'Ukuran file melebihi batas 1MB' });
+				}
+
 				const ext = value.name.split('.').pop();
 				const fileName = `${params.id}-${key}-${Date.now()}.${ext}`;
 				const filePath = join(uploadDir, fileName);

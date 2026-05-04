@@ -1,5 +1,6 @@
 import type { PageServerLoad, Actions } from './$types';
 import { getInvitationBySlug, getTemplateById, addWish, getWishesByInvitation } from '$lib/server/invitations';
+import { signUploadsList, signUploadsUrl } from '$lib/server/upload-signing';
 
 export const load: PageServerLoad = async ({ params, url }) => {
 	const { slug } = params;
@@ -15,11 +16,19 @@ export const load: PageServerLoad = async ({ params, url }) => {
 	const template = await getTemplateById(invitation.template_id);
 	const wishes = await getWishesByInvitation(invitation.id);
 
+	const signedInvitation = {
+		...invitation,
+		bride_photo: signUploadsUrl(invitation.bride_photo || ''),
+		groom_photo: signUploadsUrl(invitation.groom_photo || ''),
+		background_image: signUploadsList(invitation.background_image || ''),
+		gallery_images: signUploadsList(invitation.gallery_images || '')
+	};
+
 	// Get guest name from query parameter ?to=
 	const guestName = url.searchParams.get('to') ?? '';
 
 	return {
-		invitation,
+		invitation: signedInvitation,
 		template,
 		wishes,
 		guestName, // optional

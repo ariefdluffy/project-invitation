@@ -10,11 +10,20 @@
     "bride_name": "Nama Mempelai Wanita",
     "quote": "In the arithmetic of love, one plus one equals everything.",
     "quote_source": "",
-    "love_story": "Kisah ini berawal dari pertemuan di bulan Januari 2020.\n\nSetelah menjalani perjalanan bersama, kami memutuskan melangkah ke jenjang pernikahan.\n\nDengan penuh rasa syukur, kami mengundang Anda untuk hadir di hari bahagia kami."
+    "love_story": "Kisah ini berawal dari pertemuan di bulan Januari 2020.\n\nSetelah menjalani perjalanan bersama, kami memutuskan melangkah ke jenjang pernikahan.\n\nDengan penuh rasa syukur, kami mengundang Anda untuk hadir di hari bahagia kami.",
+    "background_image": "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1920&q=80"
   },
   "primary_color": "#d4a574",
   "secondary_color": "#1f2937",
   "accent_color": "#fdf7ef",
   "font_family": "Cormorant Garamond",
-  "layout_style": "romantic"
+  "layout_style": "romantic",
+  "custom_styles": {
+    "card_positioning": "dynamic-scroll",
+    "glass_effect": {
+      "opacity": "0.85",
+      "blur": "10px",
+      "border_radius": "20px"
+    }
+  }
 }

@@ -1,5 +1,6 @@
 import type { PageServerLoad, Actions } from './$types';
 import { fail } from '@sveltejs/kit';
+import { env } from '$env/dynamic/private';
 import fs from 'fs';
 import path from 'path';
 
@@ -36,6 +37,11 @@ export const actions: Actions = {
 		const allowedTypes = ['image/jpeg', 'image/png'];
 		if (!allowedTypes.includes(file.type)) {
 			return fail(400, { error: 'Hanya file JPG dan PNG yang diperbolehkan' });
+		}
+
+		const maxFileSize = Number(env.MAX_FILE_SIZE || 1048576);
+		if (file.size > maxFileSize) {
+			return fail(400, { error: 'Ukuran file melebihi batas 1MB' });
 		}
 
 		// Create user directory if it doesn't exist
