@@ -1,42 +1,16 @@
-import type { Actions } from './';
+import type { Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 import { authenticateUser } from '$lib/server/users';
-import { SECRET_KEY } from '$env/static/private';
 
 export const actions: Actions = {
 	default: async ({ request, cookies }) => {
 		const formData = await request.formData();
 		const email = formData.get('email') as string;
 		const password = formData.get('password') as string;
-        const turnstileResponse = formData.get('cf-turnstile-response') as string;
 
 		if (!email || !password) {
 			return fail(400, { error: 'Email dan password harus diisi', email });
 		}
-
-        // Verify Turnstile
-        if (!turnstileResponse) {
-            return fail(400, { error: 'Security challenge (Turnstile) is required', email });
-        }
-
-        try {
-            const verifyRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `secret=${SECRET_KEY}&response=${turnstileResponse}`
-            });
-
-            const verifyData = await verifyRes.json();
-            if (!verifyData.success) {
-                console.error('Turnstile verification failed:', verifyData);
-                return fail(400, { error: 'Gagal memverifikasi bahwa Anda bukan robot.', email });
-            }
-        } catch (err) {
-            console.error('Error verifying Turnstile:', err);
-            return fail(500, { error: 'Terjadi kesalahan sistem saat verifikasi keamanan.', email });
-        }
 
 		const user = await authenticateUser(email, password);
 		if (!user) {
