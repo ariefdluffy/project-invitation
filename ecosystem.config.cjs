@@ -29,12 +29,12 @@ module.exports = {
       // ========================================
       name: 'project-invitation',
       script: './build/index.js',
-      cwd: '/var/www/project-invitation',
+      cwd: '/home/miftah/projects/project-invitation/',
 
       // ========================================
       // Environment File (Cara PM2 membaca .env)
       // ========================================
-      env_file: '/var/www/project-invitation/.env',
+      env_file: '/home/miftah/projects/project-invitation/.env',
 
       // ========================================
       // Environment Variables
@@ -96,7 +96,7 @@ module.exports = {
       host: 'production-server-ip',
       ref: 'origin/main',
       repo: 'https://github.com/your-repo/project-invitation.git',
-      path: '/opt/project-invitation',
+      path: '/home/miftah/projects/project-invitation/',
       'post-deploy': 'npm install && npm run build && pm2 restart project-invitation',
       'pre-deploy-local': 'echo "Deploying to production"'
     }
