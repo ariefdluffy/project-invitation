@@ -2,7 +2,11 @@ import type { LayoutServerLoad } from './$types';
 import { getSetting } from '$lib/server/settings';
 
 export const load: LayoutServerLoad = async ({ locals, cookies }) => {
-	const appName = await getSetting('app_name') || 'Wedding.id';
+	const [appName, turnstileSiteKey] = await Promise.all([
+		getSetting('app_name'),
+		getSetting('turnstile_site_key')
+	]);
+
 	const flashCookie = cookies.get('flash');
 	let flash: { id?: string; type?: string; message?: string } | null = null;
 	if (flashCookie) {
@@ -15,7 +19,8 @@ export const load: LayoutServerLoad = async ({ locals, cookies }) => {
 	}
 	return {
 		user: locals.user || null,
-		appName,
+		appName: appName || 'Wedding.id',
+		turnstileSiteKey: turnstileSiteKey || '1x00000000000000000000AA',
 		flash
 	};
 };

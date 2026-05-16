@@ -1,9 +1,8 @@
 <script lang="ts">
 	import type { PageData } from "./$types";
-	import type { SubmitFunction } from "@sveltejs/kit";
-	import { enhance } from "$app/forms";
-	import { toast } from "$lib/toast.svelte";
-	import { invalidateAll } from "$app/navigation";
+	import { onMount } from 'svelte';
+	import { toast } from '$lib/toast.svelte';
+	import { goto } from '$app/navigation';
 
 	let { data }: { data: PageData } = $props();
 
@@ -17,26 +16,17 @@
 					: "unpaid",
 	);
 
-	/** Hindari $effect + invalidateAll (bisa loop / freeze). Tangani hasil aksi di sini. */
-	const billingEnhance: SubmitFunction = () => {
-		return async ({ result, update }) => {
-			if (result.type === "redirect") {
-				await update();
-				return;
-			}
-			await update();
-			if (result.type === "success") {
-				const d = result.data as { message?: string } | undefined;
-				if (d?.message) {
-					toast.success(d.message);
-					await invalidateAll();
-				}
-			} else if (result.type === "failure") {
-				const d = result.data as { error?: string } | undefined;
-				if (d?.error) toast.error(d.error);
-			}
-		};
-	};
+	onMount(() => {
+		// Check for success parameter in URL
+		const urlParams = new URLSearchParams(window.location.search);
+		const success = urlParams.get('success');
+
+		if (success === 'free') {
+			toast.success('Paket berhasil diaktifkan secara gratis! Selamat menikmati fitur premium.');
+			// Clean URL
+			goto('/dashboard/billing', { replaceState: true });
+		}
+	});
 </script>
 
 <svelte:head>
@@ -73,10 +63,10 @@
 			</div>
 		</header>
 
-		{#if data.user?.has_access === 1}
+		{#if data.user?.payment_status === "paid"}
 			<div class="access-panel access-panel--success">
 				<p class="access-panel__text">
-					Selamat! Akun Anda memiliki akses penuh. Anda dapat membuat
+					Selamat! Pembayaran Anda telah terverifikasi. Akun Anda memiliki akses penuh untuk membuat
 					dan mengelola undangan sesuai paket Anda.
 				</p>
 				<div class="status-actions">
@@ -103,7 +93,7 @@
 				</p>
 				<div class="status-actions">
 					<a
-						href="/dashboard/billing/checkout?type=premium"
+						href="/dashboard/billing"
 						class="status-cta status-cta--primary"
 					>
 						<svg class="status-cta__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -111,159 +101,128 @@
 							<path d="M2 10h20" />
 						</svg>
 						<span class="status-cta__copy">
-							<span class="status-cta__label">Lanjutkan pembayaran</span>
-							<span class="status-cta__hint">QRIS, DANA, GoPay & lainnya</span>
+							<span class="status-cta__label">Lihat paket</span>
+							<span class="status-cta__hint">Pilih paket yang sesuai</span>
 						</span>
 						<svg class="status-cta__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
 							<path d="M9 18l6-6-6-6" />
 						</svg>
 					</a>
-					<form method="POST" action="?/cancelPayment" use:enhance={billingEnhance} class="status-actions__form">
-						<button type="submit" class="status-cta status-cta--ghost">
-							<span class="status-cta__copy status-cta__copy--single">
-								<span class="status-cta__label">Batalkan & pilih paket lagi</span>
-							</span>
-						</button>
-					</form>
 				</div>
 			</div>
 		{:else}
 			<div class="access-panel access-panel--muted">
 				<p class="access-panel__text">
-					Akun ini belum diaktivasi. Pilih paket premium di samping untuk
-					membuka akses pembuatan undangan.
+					<strong>Akun Trial Gratis:</strong> Anda dapat membuat 1 undangan dengan maksimal 50 tamu selama 3 hari.
+					Upgrade ke paket premium untuk membuat hingga 5 undangan dengan 100 tamu.
 				</p>
 			</div>
 		{/if}
 	</div>
 
-	{#if data.user?.has_access != 1}
-		<div class="dash-card pricing-card">
-			<div class="price-header">
-				<span class="plan-name">Paket Premium</span>
-				<div class="price">
-					<span class="currency">Rp</span>
-					<span class="amount"
-						>{Number(data.premiumPrice).toLocaleString(
-							"id-ID",
-						)}</span
-					>
-					<span class="period">/3 Desain Undangan</span>
-				</div>
+	{#if data.trialActive}
+	<div class="trial-banner">
+		<div class="trial-banner__inner">
+			<span class="trial-banner__icon">⏳</span>
+			<div class="trial-banner__text">
+				<span class="trial-banner__title">Masa percobaan aktif</span>
+				<span class="trial-banner__sub">
+					Akses penuh hingga {new Date(data.trialEndsAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+				</span>
 			</div>
-
-			<ul class="features">
-				<li>🖼️ Foto Gallery Unlimited</li>
-				<li>🎵 Background Music</li>
-				<li>🗺️ Google Maps Integration</li>
-				<li>📋 RSVP & Guest Management</li>
-				<li>💬 Ucapan dari Tamu</li>
-			</ul>
-
-			<div class="payment-methods">
-				<h4>Metode Pembayaran</h4>
-				<div class="method-icons">
-					<span>QRIS</span>
-					<span>DANA</span>
-					<span>GOPAY</span>
-				</div>
-			</div>
-
-			<form method="POST" action="?/initiatePayment" use:enhance={billingEnhance}>
-				<button type="submit" class="btn btn-primary btn-lg w-full">
-					Aktivasi Sekarang
-				</button>
-			</form>
-
-			<p class="secure-notice">
-				🔒 Pembayaran aman & otomatis terverifikasi
-			</p>
 		</div>
-	{:else if data.user?.payment_status === "paid"}
-		<div class="addon-expansion-group">
-			<div class="dash-card addon-card">
-				<div class="addon-card__content">
-					<div class="addon-card__header">
-						<div class="addon-icon-wrapper">
-							<div class="addon-icon">💎</div>
-						</div>
-						<span class="plan-name">Ekspansi Kuota Tamu</span>
-						<div class="price">
-							<span class="currency">Rp</span>
-							<span class="amount">{Number(data.addonPrice).toLocaleString("id-ID")}</span>
-							<span class="period">/ +{data.addonQuantity} Tamu</span>
-						</div>
-					</div>
-
-					<p class="addon-desc">
-						Undangan Anda semakin ramai? Tambahkan kuota tamu secara instan untuk menampung lebih banyak kebahagiaan.
-					</p>
-
-					<div class="current-limit-box">
-						<div class="limit-info">
-							<span class="limit-label">Limit Tamu Saat Ini</span>
-							<span class="limit-sub">Total kuota seluruh akun</span>
-						</div>
-						<span class="limit-val">{data.user?.guest_limit}</span>
-					</div>
-
-					<form method="POST" action="?/initiateAddon" use:enhance={billingEnhance}>
-						<button type="submit" class="btn btn-primary btn-lg w-full">
-							Beli Tambahan {data.addonQuantity} Tamu
-						</button>
-					</form>
-				</div>
-				
-				<div class="addon-footer">
-					<span>⚡ Aktivasi Instan</span>
-					<span>•</span>
-					<span>♾️ Berlaku Selamanya</span>
-				</div>
-			</div>
-
-			<div class="dash-card template-expansion-card">
-				<div class="template-expansion-card__content">
-					<div class="template-expansion-card__header">
-						<div class="template-expansion-icon-wrapper">
-							<div class="template-expansion-icon">✨</div>
-						</div>
-						<span class="plan-name">Ekspansi Kuota Undangan</span>
-						<div class="price">
-							<span class="currency">Rp</span>
-							<span class="amount">{Number(data.templateExpansionPrice).toLocaleString("id-ID")}</span>
-							<span class="period">/ +{data.templateExpansionQuantity} Template</span>
-						</div>
-					</div>
-
-					<p class="template-expansion-desc">
-						Perluas kreativitas Anda! Dapatkan {data.templateExpansionQuantity} desain template undangan digital premium untuk menciptakan undangan yang lebih beragam dan menarik.
-					</p>
-
-					<div class="current-quota-box">
-						<div class="quota-info">
-							<span class="quota-label">Kuota Template Saat Ini</span>
-							<span class="quota-sub">Total template yang dapat dibuat</span>
-						</div>
-						<span class="quota-val">{data.user?.template_quota || 3}</span>
-					</div>
-
-					<form method="POST" action="?/initiateTemplateExpansion" use:enhance={billingEnhance}>
-						<button type="submit" class="btn btn-primary btn-lg w-full">
-							Beli +{data.templateExpansionQuantity} Template
-						</button>
-					</form>
-				</div>
-				
-				<div class="template-expansion-footer">
-					<span>🎨 Desain Eksklusif</span>
-					<span>•</span>
-					<span>♾️ Berlaku Selamanya</span>
-				</div>
-			</div>
-		</div> <!-- Close addon-expansion-group -->
+	</div>
 	{/if}
 
-	{#if data.paymentInstructions && data.user?.has_access != 1}
+	<!-- Premium Package Card -->
+	<div class="dash-card package-card package-card--popular">
+		<div class="package-card__content">
+			<div class="card-badge">PAKET PREMIUM</div>
+			<div class="package-card__header">
+				<div class="package-icon-wrapper">
+					<span class="package-icon">👑</span>
+				</div>
+				<span class="plan-name">Premium</span>
+			</div>
+			<div class="price">
+				<span class="currency">Rp</span>
+				<span class="amount">{Number(data.premiumPrice).toLocaleString('id-ID')}</span>
+				<span class="period">/ bulan</span>
+			</div>
+			<p class="package-desc">
+				Akses penuh ke semua fitur undangan digital dengan <strong>5 undangan</strong> dan <strong>100 tamu</strong>
+			</p>
+			<ul class="package-features">
+				<li>
+					<span class="feat-check">✓</span>
+					Buat hingga 5 undangan
+				</li>
+				<li>
+					<span class="feat-check">✓</span>
+					Kuota 100 tamu per akun
+				</li>
+				<li>
+					<span class="feat-check">✓</span>
+					RSVP & ucapan online
+				</li>
+				<li>
+					<span class="feat-check">✓</span>
+					Upload foto & galeri
+				</li>
+				<li>
+					<span class="feat-check">✓</span>
+					Integrasi Google Maps
+				</li>
+				<li>
+					<span class="feat-check">✓</span>
+					Musik latar & animasi
+				</li>
+			</ul>
+			<div class="package-card__action">
+				{#if data.user?.payment_status === "paid"}
+					<span class="btn btn-secondary btn-lg w-full" style="cursor:default;opacity:0.6;">Sudah Aktif</span>
+				{:else}
+					<a href="/dashboard/billing/checkout?package=premium" class="btn btn-primary btn-lg w-full">Berlangganan Sekarang</a>
+				{/if}
+			</div>
+			<div class="package-footer">
+				<small>⭐ Paket paling populer untuk semua kebutuhan undangan</small>
+			</div>
+		</div>
+	</div>
+
+	<!-- Add-on Guest Card -->
+	<div class="dash-card addon-card">
+		<div class="addon-card__content">
+			<div class="addon-card__header">
+				<div class="addon-icon-wrapper">
+					<span class="addon-icon">👥</span>
+				</div>
+				<span class="plan-name">Add-on Tamu</span>
+			</div>
+			<div class="price">
+				<span class="currency">Rp</span>
+				<span class="amount">{Number(data.addonGuestPrice).toLocaleString('id-ID')}</span>
+				<span class="period">/ paket</span>
+			</div>
+			<p class="addon-desc">
+				Tambah kuota tamu sebanyak <strong>{data.addonGuestQuantity} tamu</strong> per pembelian.
+				Masa aktif mengikuti langganan premium Anda.
+			</p>
+			<div class="addon-card__action">
+				{#if data.user?.payment_status === "paid"}
+					<a href="/dashboard/billing/checkout?package=addon-guest" class="btn btn-primary btn-lg w-full">Beli Add-on</a>
+				{:else}
+					<span class="btn btn-secondary btn-lg w-full" style="cursor:default;opacity:0.6;">Aktifkan Premium Dulu</span>
+				{/if}
+			</div>
+			<div class="addon-footer">
+				<small>💡 Add-on ini menambah kuota tamu untuk semua undangan Anda</small>
+			</div>
+		</div>
+	</div>
+
+	{#if data.paymentInstructions && data.user?.payment_status !== "paid"}
 		<div class="dash-card manual-payment-card">
 			<div class="manual-header">
 				<div class="manual-icon">💬</div>
@@ -281,8 +240,8 @@
 				</div>
 			</div>
 
-			<a 
-				href="https://wa.me/?text=Halo%20Admin%20Undangan%20-%20Saya%20ingin%20melakukan%20pembayaran%20manual.%20Berapa%20cara%20pembayarannya%3F" 
+			<a
+				href="https://wa.me/?text=Halo%20Admin%20Undangan%20-%20Saya%20ingin%20melakukan%20pembayaran%20manual.%20Berapa%20cara%20pembayarannya%3F"
 				target="_blank"
 				rel="noopener noreferrer"
 				class="btn btn-whatsapp btn-lg w-full"
@@ -311,12 +270,18 @@
 		display: grid;
 		grid-template-columns: 1fr;
 		gap: 2rem;
-		max-width: 900px;
+		max-width: 1200px;
 	}
 
 	@media (min-width: 768px) {
 		.billing-grid {
-			grid-template-columns: 1fr 1.2fr;
+			grid-template-columns: 1fr 1fr;
+		}
+	}
+
+	@media (min-width: 1024px) {
+		.billing-grid {
+			grid-template-columns: 1fr 1fr 1fr;
 		}
 	}
 
@@ -602,16 +567,17 @@
 
 	.card-badge {
 		position: absolute;
-		top: 15px;
-		right: -35px;
-		background: linear-gradient(90deg, #6c63ff, #8b5cf6);
+		top: 1rem;
+		right: 1rem;
+		background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
 		color: white;
-		padding: 0.4rem 3.5rem;
-		font-size: 0.7rem;
-		font-weight: 800;
-		transform: rotate(45deg);
-		box-shadow: 0 4px 10px rgba(108, 99, 255, 0.3);
-		letter-spacing: 1px;
+		padding: 0.35rem 0.85rem;
+		border-radius: 20px;
+		font-size: 0.65rem;
+		font-weight: 700;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
 	}
 
 	.price-header {
@@ -703,8 +669,8 @@
 		margin-top: 1rem;
 	}
 	.addon-card {
-		padding: 0;
-		border: none;
+		padding: 2.5rem 2rem 2rem;
+		border: 1px solid rgba(108, 99, 255, 0.15);
 		background: linear-gradient(135deg, #f8faff 0%, #f0f4ff 100%);
 		box-shadow: 0 4px 20px rgba(108, 99, 255, 0.1);
 		display: flex;
@@ -712,8 +678,9 @@
 		overflow: hidden;
 		border-radius: 16px;
 		position: relative;
+		text-align: center;
 	}
-	
+
 	.addon-card::before {
 		content: "";
 		position: absolute;
@@ -725,10 +692,10 @@
 	}
 
 	.addon-card__content {
-		padding: 2.5rem 2rem;
 		display: flex;
 		flex-direction: column;
 		gap: 1.5rem;
+		flex: 1;
 	}
 
 	.addon-card__header {
@@ -736,11 +703,11 @@
 	}
 
 	.addon-icon-wrapper {
-		width: 80px;
-		height: 80px;
-		margin: 0 auto 1.25rem;
+		width: 64px;
+		height: 64px;
+		margin: 0 auto 1rem;
 		background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-		border-radius: 20px;
+		border-radius: 16px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -748,7 +715,7 @@
 	}
 
 	.addon-icon {
-		font-size: 2.5rem;
+		font-size: 2rem;
 		margin: 0;
 	}
 
@@ -773,8 +740,10 @@
 	}
 
 	.addon-card .amount {
-		font-size: 3rem;
+		font-size: 2.5rem;
 		color: #1e293b;
+		font-weight: 800;
+		letter-spacing: -1px;
 	}
 
 	.addon-card .period {
@@ -829,6 +798,10 @@
 		background-clip: text;
 	}
 
+	.addon-card__action {
+		margin-top: auto;
+	}
+
 	.addon-card .btn-primary {
 		background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
 		box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
@@ -844,8 +817,8 @@
 		justify-content: center;
 		align-items: center;
 		gap: 0.5rem;
-		padding: 1rem 1.5rem;
-		background: rgba(99, 102, 241, 0.04);
+		margin-top: 1rem;
+		padding-top: 1rem;
 		border-top: 1px solid rgba(99, 102, 241, 0.1);
 		font-size: 0.8rem;
 		color: #64748b;
@@ -1097,9 +1070,216 @@
 	}
 
 	.manual-notice {
-		text-align: center;
-		font-size: 0.8rem;
-		color: #64748b;
-		margin-top: 1rem;
-	}
-</style>
+			text-align: center;
+			font-size: 0.8rem;
+			color: #64748b;
+			margin-top: 1rem;
+		}
+
+		.trial-banner {
+			grid-column: 1 / -1;
+			background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(251, 191, 36, 0.04));
+			border: 1px solid rgba(251, 191, 36, 0.25);
+			border-radius: 14px;
+			overflow: hidden;
+		}
+
+		.trial-banner__inner {
+			display: flex;
+			align-items: center;
+			gap: 1rem;
+			padding: 1rem 1.5rem;
+		}
+
+		.trial-banner__icon {
+			font-size: 1.8rem;
+			flex-shrink: 0;
+		}
+
+		.trial-banner__text {
+			display: flex;
+			flex-direction: column;
+			gap: 0.15rem;
+		}
+
+		.trial-banner__title {
+			font-weight: 700;
+			font-size: 0.95rem;
+			color: #fde68a;
+		}
+
+		.trial-banner__sub {
+			font-size: 0.82rem;
+			color: var(--dash-text-muted);
+		}
+
+		.packages-grid {
+			grid-column: 1 / -1;
+			display: grid;
+			grid-template-columns: 1fr;
+			gap: 1.5rem;
+		}
+
+		@media (min-width: 768px) {
+			.packages-grid {
+				grid-template-columns: repeat(3, 1fr);
+			}
+		}
+
+		.package-card {
+			padding: 2.5rem 2rem 2rem;
+			border: 1px solid rgba(108, 99, 255, 0.15);
+			background: linear-gradient(135deg, #fff5f8 0%, #fff0f5 100%);
+			box-shadow: 0 4px 20px rgba(236, 72, 153, 0.1);
+			display: flex;
+			flex-direction: column;
+			overflow: hidden;
+			border-radius: 16px;
+			position: relative;
+			text-align: center;
+		}
+
+		.package-card::before {
+			content: "";
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			height: 4px;
+			background: linear-gradient(135deg, #ec4899 0%, #f472b6 50%, #fb7185 100%);
+		}
+
+		.package-card__content {
+			display: flex;
+			flex-direction: column;
+			gap: 1.5rem;
+			flex: 1;
+		}
+
+		.package-card--popular {
+			background: linear-gradient(135deg, #fff5f8 0%, #fff0f5 100%);
+			box-shadow: 0 12px 40px rgba(236, 72, 153, 0.15);
+		}
+
+		.package-card__header {
+			text-align: center;
+		}
+
+		.package-icon-wrapper {
+			width: 64px;
+			height: 64px;
+			margin: 0 auto 1rem;
+			background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
+			border-radius: 16px;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			box-shadow: 0 8px 24px rgba(236, 72, 153, 0.3);
+		}
+
+		.package-icon {
+			font-size: 2rem;
+			margin: 0;
+		}
+
+		.package-card .plan-name {
+			font-size: 0.75rem;
+			font-weight: 700;
+			text-transform: uppercase;
+			letter-spacing: 0.08em;
+			color: #ec4899;
+			margin-bottom: 0.5rem;
+			display: block;
+		}
+
+		.package-card .price {
+			justify-content: center;
+			margin-top: 0.75rem;
+		}
+
+		.package-card .currency {
+			font-size: 1.2rem;
+			color: #1e293b;
+		}
+
+		.package-card .amount {
+			font-size: 2.5rem;
+			color: #1e293b;
+			font-weight: 800;
+			letter-spacing: -1px;
+		}
+
+		.package-card .period {
+			font-size: 0.9rem;
+			color: #64748b;
+		}
+
+		.package-desc {
+			color: #475569;
+			font-size: 0.95rem;
+			line-height: 1.6;
+			text-align: center;
+			margin: 0;
+		}
+
+		.package-features {
+			list-style: none;
+			padding: 0;
+			margin: 0;
+			display: flex;
+			flex-direction: column;
+			gap: 0.75rem;
+		}
+
+		.package-features li {
+			display: flex;
+			align-items: center;
+			gap: 0.75rem;
+			font-size: 0.88rem;
+			color: #475569;
+			text-align: left;
+		}
+
+		.feat-check {
+			width: 20px;
+			height: 20px;
+			border-radius: 50%;
+			background: rgba(236, 72, 153, 0.12);
+			color: #ec4899;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-size: 0.7rem;
+			font-weight: 700;
+			flex-shrink: 0;
+		}
+
+		.package-footer {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			gap: 0.5rem;
+			margin-top: 1rem;
+			padding-top: 1rem;
+			border-top: 1px solid rgba(236, 72, 153, 0.1);
+			font-size: 0.8rem;
+			color: #64748b;
+			font-weight: 500;
+		}
+
+
+
+		.package-card__action {
+			margin-top: auto;
+		}
+
+		.package-card .btn-primary {
+			background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
+			box-shadow: 0 4px 14px rgba(236, 72, 153, 0.35);
+		}
+
+		.package-card .btn-primary:hover {
+			box-shadow: 0 6px 20px rgba(236, 72, 153, 0.45);
+			transform: translateY(-1px);
+		}
+	</style>

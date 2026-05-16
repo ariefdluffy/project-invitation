@@ -1,6 +1,7 @@
 <script lang="ts">
-	import type { PageData, ActionData } from "./$types";
-	import KhitanLayout from "$lib/components/invitations/KhitanLayout.svelte";
+	import { onMount } from 'svelte';
+		import type { PageData, ActionData } from "./$types";
+		import KhitanLayout from "$lib/components/invitations/KhitanLayout.svelte";
 	import AqiqahLayout from "$lib/components/invitations/AqiqahLayout.svelte";
 	import BirthdayLayout from "$lib/components/invitations/BirthdayLayout.svelte";
 	import GatheringLayout from "$lib/components/invitations/GatheringLayout.svelte";
@@ -24,6 +25,19 @@
 	import { toast } from "$lib/toast.svelte";
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
+
+	onMount(() => {
+		// Track page view
+		const guestName = new URLSearchParams(window.location.search).get('to') || '';
+		fetch('/api/track-view', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				invitationId: data.invitation?.id,
+				guestName
+			})
+		}).catch(() => {});
+	});
 
 	const invitation = $derived(data.invitation || {});
 	const template = $derived(data.template || {});
@@ -250,7 +264,7 @@
 		: ''}"
 >
 	{#if template.background_type === "3d"}
-		
+
 	{:else}
 		<div class="bg-blur-overlay"></div>
 

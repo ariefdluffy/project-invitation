@@ -3,7 +3,21 @@
 	import { onMount } from 'svelte';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
+	let resetSuccess = $state(false);
+
+	$effect(() => {
+		if (typeof window !== 'undefined') {
+			const params = new URLSearchParams(window.location.search);
+			if (params.get('reset') === 'success') {
+				resetSuccess = true;
+				// Clean URL
+				window.history.replaceState({}, '', '/login');
+			}
+		}
+	});
 	let turnstileWidgetId: string | null = $state(null);
+	let turnstileReady = $state(false);
+	let turnstileToken = $state('');
 
 	onMount(() => {
 		const container = document.getElementById('cf-turnstile-login');
@@ -12,8 +26,20 @@
 		const renderTurnstile = () => {
 			if (typeof (window as any).turnstile !== 'undefined') {
 				turnstileWidgetId = (window as any).turnstile.render('#cf-turnstile-login', {
-					sitekey: '0x4AAAAAADIp8xx5AfGgcwB6',
-					theme: 'light'
+					sitekey: data.turnstileSiteKey,
+					theme: 'light',
+					callback: (token: string) => {
+						turnstileToken = token;
+						turnstileReady = true;
+					},
+					expired: () => {
+						turnstileToken = '';
+						turnstileReady = false;
+					},
+					error: () => {
+						turnstileToken = '';
+						turnstileReady = false;
+					}
 				}) as string;
 			}
 		};
@@ -47,8 +73,16 @@
 		<h1>{data.appName}</h1>
 		<p>Masuk ke akunmu untuk mengelola undangan</p>
 
+		{#if resetSuccess}
+			<div class="success-message">Password berhasil direset. Silakan login dengan password baru.</div>
+		{/if}
+
 		{#if form?.error}
 			<div class="error-message">{form.error}</div>
+		{/if}
+
+		{#if !turnstileReady}
+			<div class="info-message">Loading security challenge...</div>
 		{/if}
 
 		<form method="POST">
@@ -63,8 +97,13 @@
 			<div class="form-group turnstile-container">
 				<div id="cf-turnstile-login" class="cf-turnstile"></div>
 			</div>
-			<button type="submit" class="btn btn-primary">Masuk</button>
+			<button type="submit" class="btn btn-primary" disabled={!turnstileReady}>
+				{turnstileReady ? 'Masuk' : 'Memuat...'}
+			</button>
 		</form>
+		<div class="auth-links">
+			<a href="/forgot-password">Lupa password?</a>
+		</div>
 		<div class="auth-links">
 			Belum punya akun? <a href="/register">Daftar sekarang</a>
 		</div>
@@ -73,4 +112,13 @@
 
 <style>
 	.turnstile-container { display: flex; justify-content: center; margin: 15px 0; min-height: 65px; }
+	.success-message {
+		background: #e8f5e9;
+		color: #2e7d32;
+		padding: 12px 16px;
+		border-radius: 8px;
+		margin-bottom: 16px;
+		font-size: 14px;
+		text-align: center;
+	}
 </style>

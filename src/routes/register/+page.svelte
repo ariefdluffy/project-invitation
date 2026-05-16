@@ -4,6 +4,7 @@
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 	let turnstileWidgetId: string | null = $state(null);
+	let turnstileReady = $state(false);
 
 	onMount(() => {
 		const container = document.getElementById('cf-turnstile-register');
@@ -12,8 +13,11 @@
 		const renderTurnstile = () => {
 			if (typeof (window as any).turnstile !== 'undefined') {
 				turnstileWidgetId = (window as any).turnstile.render('#cf-turnstile-register', {
-					sitekey: '0x4AAAAAADIp8xx5AfGgcwB6',
-					theme: 'light'
+					sitekey: data.turnstileSiteKey,
+					theme: 'light',
+					callback: () => { turnstileReady = true; },
+					expired: () => { turnstileReady = false; },
+					error: () => { turnstileReady = false; }
 				}) as string;
 			}
 		};
@@ -51,6 +55,10 @@
 			<div class="error-message">{form.error}</div>
 		{/if}
 
+		{#if !turnstileReady}
+			<div class="info-message">Loading security challenge...</div>
+		{/if}
+
 		<form method="POST">
 			<div class="form-group">
 				<label for="username">Username</label>
@@ -71,7 +79,9 @@
 			<div class="form-group turnstile-container">
 				<div id="cf-turnstile-register" class="cf-turnstile"></div>
 			</div>
-			<button type="submit" class="btn btn-primary">Daftar</button>
+			<button type="submit" class="btn btn-primary" disabled={!turnstileReady}>
+				{turnstileReady ? 'Daftar' : 'Memuat...'}
+			</button>
 		</form>
 		<div class="auth-links">
 			Sudah punya akun? <a href="/login">Masuk di sini</a>
@@ -81,4 +91,7 @@
 
 <style>
 	.turnstile-container { display: flex; justify-content: center; margin: 15px 0; min-height: 65px; }
+	.info-message { background: #fff3cd; color: #856404; padding: 10px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; text-align: center; }
+	button:disabled { background: #ccc; cursor: not-allowed; }
+	.error-message { background: #ffebee; color: #c62828; padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 14px; text-align: center; }
 </style>

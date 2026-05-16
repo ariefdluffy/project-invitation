@@ -49,3 +49,5 @@ uploads/*
 .cache/
 temp/
 tmp/
+
+nul

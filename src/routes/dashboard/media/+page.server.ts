@@ -3,12 +3,14 @@ import { fail } from '@sveltejs/kit';
 import { env } from '$env/dynamic/private';
 import fs from 'fs';
 import path from 'path';
+import { isAllowedImageType } from '$lib/server/magic-bytes';
+import { optimizeImage } from '$lib/server/image-optimizer';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const userDir = path.join(process.cwd(), 'static', 'uploads', locals.user!.id);
-	
+
 	let files: { name: string, url: string, size: number, mtimeMs: number }[] = [];
-	
+
 	if (fs.existsSync(userDir)) {
 		const fileNames = fs.readdirSync(userDir);
 		files = fileNames.map(name => {
@@ -34,8 +36,10 @@ export const actions: Actions = {
 			return fail(400, { error: 'Tidak ada file yang dipilih' });
 		}
 
-		const allowedTypes = ['image/jpeg', 'image/png'];
-		if (!allowedTypes.includes(file.type)) {
+		// Validate by magic bytes (actual file signature), not just MIME header
+		const fileBuffer = Buffer.from(await file.arrayBuffer());
+		const detectedType = isAllowedImageType(new Uint8Array(fileBuffer));
+		if (!detectedType) {
 			return fail(400, { error: 'Hanya file JPG dan PNG yang diperbolehkan' });
 		}
 
@@ -54,12 +58,16 @@ export const actions: Actions = {
 		const ext = path.extname(file.name);
 		const basename = path.basename(file.name, ext).replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
 		const finalName = `${basename}-${Date.now()}${ext}`;
-		
+
 		const filePath = path.join(userDir, finalName);
-		
+
 		try {
-			const buffer = Buffer.from(await file.arrayBuffer());
-			fs.writeFileSync(filePath, buffer);
+			// Optimize image with sharp
+			const optimizedBuffer = await optimizeImage(fileBuffer, {
+				width: 1920,
+				quality: 80
+			});
+			fs.writeFileSync(filePath, optimizedBuffer);
 			return { success: true, message: 'Foto berhasil diupload' };
 		} catch (err) {
 			console.error(err);
@@ -74,7 +82,7 @@ export const actions: Actions = {
 		if (!fileName) return fail(400, { error: 'Nama file tidak valid' });
 
 		const filePath = path.join(process.cwd(), 'static', 'uploads', locals.user!.id, fileName);
-		
+
 		try {
 			if (fs.existsSync(filePath)) {
 				fs.unlinkSync(filePath);

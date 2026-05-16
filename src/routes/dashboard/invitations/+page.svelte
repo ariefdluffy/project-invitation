@@ -15,9 +15,9 @@
 	});
 
 	const isAtLimit = $derived(
-		data.user && 
-		data.invitations && 
-		data.user.role !== 'admin' && 
+		data.user &&
+		data.invitations &&
+		data.user.role !== 'admin' &&
 		data.invitations.length >= data.user.invitation_limit
 	);
 
@@ -36,6 +36,12 @@
 <svelte:head>
 	<title>Undangan Saya - {data.appName}</title>
 </svelte:head>
+
+{#if !data.hasActiveAccess}
+	<div class="trial-expired-banner">
+		Masa trial Anda telah berakhir. <a href="/dashboard/billing">Aktifkan premium</a> untuk melanjutkan.
+	</div>
+{/if}
 
 <div class="dash-header">
 	<div>
@@ -81,7 +87,7 @@
 					</div>
 					<div class="inv-template-tag">Template: {inv.template_id.replace('-', ' ')}</div>
 				</div>
-				
+
 				<div class="inv-card-body">
 					<h3 class="couple-names">{inv.bride_name} & {inv.groom_name}</h3>
 					<div class="inv-info-row">
@@ -118,6 +124,21 @@
 {/if}
 
 <style>
+	.trial-expired-banner {
+		padding: 1rem 1.5rem;
+		background: #fff3cd;
+		border: 1px solid #ffc107;
+		border-radius: 10px;
+		color: #856404;
+		margin-bottom: 1.5rem;
+		font-size: 0.9rem;
+		text-align: center;
+	}
+	.trial-expired-banner a {
+		color: #e67e22;
+		font-weight: 700;
+		text-decoration: underline;
+	}
 	.dash-header-sub {
 		color: var(--dash-text-muted);
 		font-size: 0.95rem;

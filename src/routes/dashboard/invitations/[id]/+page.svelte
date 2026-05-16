@@ -12,7 +12,7 @@
     console.log('DEBUG: invitation.template_id=', data.invitation.template_id, 'selectedTemplate=', selectedTemplate);
 	let previewingTemplate = $state(null);
 	let showDeleteConfirm = $state(false);
-	
+
 	let filteredGuests = $derived(
 		data.guests.filter(g => g.name.toLowerCase().includes(searchQuery.toLowerCase()))
 	);
@@ -36,11 +36,11 @@
 	let galleryPreviews = $state<string[]>([]);
 	const MAX_FILE_SIZE = 1024 * 1024;
 	const MAX_FILE_SIZE_LABEL = '1MB';
-    
+
     // Fix for Tab Error: Ensure customContent is initialized
     let customContent = $state(
-        typeof data.invitation.custom_content === 'string' 
-            ? JSON.parse(data.invitation.custom_content || '{}') 
+        typeof data.invitation.custom_content === 'string'
+            ? JSON.parse(data.invitation.custom_content || '{}')
             : (data.invitation.custom_content || {})
     );
 
@@ -65,7 +65,7 @@
 			input.value = '';
 			return;
 		}
-		
+
 		if (type === 'bride') {
 			bridePreview = URL.createObjectURL(file);
 		} else if (type === 'groom') {
@@ -149,9 +149,9 @@
 			</div>
 			<div class="modal-body demo-body">
 				<div class="iframe-container">
-					<iframe 
+					<iframe
 						title="Template Demo"
-						src="/demo/{previewingTemplate.id}" 
+						src="/demo/{previewingTemplate.id}"
 						frameborder="0"
 					></iframe>
 				</div>
@@ -160,9 +160,9 @@
 				</div>
 			</div>
 			<div class="modal-footer">
-				<button 
-					type="button" 
-					class="btn btn-primary w-full" 
+				<button
+					type="button"
+					class="btn btn-primary w-full"
 					onclick={() => {
 						selectedTemplate = previewingTemplate.id;
 						previewingTemplate = null;
@@ -207,6 +207,37 @@
 	{/if}
 {/if}
 
+<!-- Stats Section -->
+{#if data.stats}
+	<div class="stats-grid">
+		<div class="stat-card">
+			<span class="stat-icon">👁</span>
+			<span class="stat-value">{data.stats.totalViews}</span>
+			<span class="stat-label">Total Views</span>
+		</div>
+		<div class="stat-card">
+			<span class="stat-icon">👤</span>
+			<span class="stat-value">{data.stats.uniqueVisitors}</span>
+			<span class="stat-label">Unique Visitors</span>
+		</div>
+		<div class="stat-card">
+			<span class="stat-icon">💌</span>
+			<span class="stat-value">{data.stats.totalRsvp}</span>
+			<span class="stat-label">RSVP received</span>
+		</div>
+		<div class="stat-card">
+			<span class="stat-icon">✅</span>
+			<span class="stat-value">{data.stats.attendingCount}</span>
+			<span class="stat-label">Hadir</span>
+		</div>
+		<div class="stat-card">
+			<span class="stat-icon">❌</span>
+			<span class="stat-value">{data.stats.notAttendingCount}</span>
+			<span class="stat-label">Tidak Hadir</span>
+		</div>
+	</div>
+{/if}
+
 <!-- Tabs -->
 <div class="tabs">
 	<button class="tab" class:active={activeTab === 'detail'} onclick={() => activeTab = 'detail'}>📝 Detail</button>
@@ -225,10 +256,10 @@
 			<div class="template-grid-edit">
 				{#each data.templates as template}
 					<label class="template-option {selectedTemplate === template.id ? 'active' : ''}">
-						<input 
-							type="radio" 
-							name="template_id_radio" 
-							value={template.id} 
+						<input
+							type="radio"
+							name="template_id_radio"
+							value={template.id}
 							checked={selectedTemplate === template.id}
 							onchange={() => (selectedTemplate = template.id)}
 							style="display: none;"
@@ -241,9 +272,9 @@
 						</div>
 						<div class="template-info">
 							<span class="template-name">{template.name}</span>
-							<button 
-								type="button" 
-								class="btn-preview-small" 
+							<button
+								type="button"
+								class="btn-preview-small"
 								onclick={(e) => {
 									e.preventDefault();
 									e.stopPropagation();
@@ -365,11 +396,11 @@
 			<div class="form-group">
 				<label for="respect_person">Hormat Kami</label>
 				<p class="sub" style="margin-bottom:0.5rem">Opsional. Masukkan nama pengundang (satu per baris). Jika kosong, akan otomatis menampilkan nama orang tua.</p>
-				<textarea 
+				<textarea
 					id="respect_person"
-					name="respect_person" 
-					class="form-control" 
-					rows="3" 
+					name="respect_person"
+					class="form-control"
+					rows="3"
 					placeholder="Keluarga Besar Bpk. A&#10;Keluarga Besar Bpk. B"
 				>{data.invitation.respect_person || ''}</textarea>
 			</div>
@@ -378,34 +409,34 @@
 			<div class="form-group">
 				<label for="background_image">Background Halaman Depan (URL Foto)</label>
 				<p class="sub" style="margin-bottom:0.5rem">Masukkan URL foto (satu per baris). Ambil URL dari menu <a href="/dashboard/media" target="_blank" style="color: var(--dash-accent); text-decoration: underline;">Kelola Media</a>.</p>
-				<textarea 
+				<textarea
 					id="background_image"
-					name="background_image" 
-					class="form-control" 
-					rows="3" 
-					placeholder="https://.../foto1.jpg&#10;https://.../foto2.jpg" 
+					name="background_image"
+					class="form-control"
+					rows="3"
+					placeholder="https://.../foto1.jpg&#10;https://.../foto2.jpg"
 					oninput={e => handleUrlChange(e, 'bg')}
 				>{data.invitation.background_image || ''}</textarea>
-				
+
 				<div class="photo-preview grid" style="margin-top: 1rem">
 					{#each bgPreviews as src}
 						<img src={src} alt="Background Preview" />
 					{/each}
 				</div>
 			</div>
-			
+
 			<div class="form-group">
 				<label for="gallery_images">Galeri Pre-Wedding (URL Foto)</label>
 				<p class="sub" style="margin-bottom:0.5rem">Masukkan URL foto galeri (satu per baris). Ambil URL dari menu <a href="/dashboard/media" target="_blank" style="color: var(--dash-accent); text-decoration: underline;">Kelola Media</a>.</p>
-				<textarea 
+				<textarea
 					id="gallery_images"
-					name="gallery_images" 
-					class="form-control" 
-					rows="5" 
-					placeholder="https://.../galeri1.jpg&#10;https://.../galeri2.jpg" 
+					name="gallery_images"
+					class="form-control"
+					rows="5"
+					placeholder="https://.../galeri1.jpg&#10;https://.../galeri2.jpg"
 					oninput={e => handleUrlChange(e, 'gallery')}
 				>{data.invitation.gallery_images || ''}</textarea>
-				
+
 				<div class="photo-preview grid" style="margin-top: 1rem">
 					{#each galleryPreviews as src}
 						<img src={src} alt="Gallery Preview" />
@@ -460,10 +491,10 @@
 			</form>
 
 			<div class="search-guest">
-				<input 
-					type="text" 
-					class="form-control search-input" 
-					placeholder="🔍 Cari nama tamu..." 
+				<input
+					type="text"
+					class="form-control search-input"
+					placeholder="🔍 Cari nama tamu..."
 					bind:value={searchQuery}
 				/>
 			</div>
@@ -573,9 +604,9 @@
 				🚫 Tindakan ini tidak dapat dibatalkan. Semua data termasuk tamu dan ucapan akan dihapus permanen.
 			</p>
 			<div class="modal-actions">
-				<button 
-					type="button" 
-					class="btn btn-cancel" 
+				<button
+					type="button"
+					class="btn btn-cancel"
 					onclick={() => showDeleteConfirm = false}
 				>
 					✕ Batal
@@ -591,6 +622,40 @@
 {/if}
 
 <style>
+	.stats-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+		gap: 1rem;
+		margin-bottom: 1.5rem;
+	}
+	.stat-card {
+		background: var(--dash-surface);
+		border: 1px solid var(--dash-border);
+		border-radius: 12px;
+		padding: 1rem;
+		text-align: center;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.25rem;
+		transition: transform 0.2s;
+	}
+	.stat-card:hover {
+		transform: translateY(-2px);
+	}
+	.stat-icon {
+		font-size: 1.5rem;
+	}
+	.stat-value {
+		font-size: 1.75rem;
+		font-weight: 700;
+		color: var(--dash-accent);
+		line-height: 1;
+	}
+	.stat-label {
+		font-size: 0.8rem;
+		color: var(--dash-text-muted);
+	}
 	.sub {
 		color: var(--dash-text-muted);
 		font-size: 0.9rem;
@@ -657,7 +722,7 @@
 			max-width: 300px;
 		}
 	}
-	
+
 	.add-guest-form {
 		display: flex;
 		gap: 0.5rem;

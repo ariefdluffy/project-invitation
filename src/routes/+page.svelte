@@ -224,6 +224,94 @@
 	</div>
 </section>
 
+<!-- Pricing Section -->
+<section id="pricing" class="pricing-section">
+	<div class="section-container">
+		<div class="pricing-layout">
+			<!-- Left Side: Caption -->
+			<div class="pricing-caption">
+				<span class="section-badge">Paket Berlangganan</span>
+				<h2 class="section-title">Harga Terjangkau untuk Semua</h2>
+				<p class="section-subtitle">
+					Akses premium dengan harga yang ramah di kantong. Dapatkan semua fitur undangan digital terbaik untuk momen spesial Anda.
+				</p>
+				<div class="pricing-highlights">
+					<div class="highlight-item">
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+							<polyline points="22 4 12 14.01 9 11.01"/>
+						</svg>
+						<span>Trial gratis 3 hari (1 undangan, 50 tamu)</span>
+					</div>
+					<div class="highlight-item">
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+							<polyline points="22 4 12 14.01 9 11.01"/>
+						</svg>
+						<span>Tanpa biaya tersembunyi</span>
+					</div>
+					<div class="highlight-item">
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+							<polyline points="22 4 12 14.01 9 11.01"/>
+						</svg>
+						<span>Support 24/7</span>
+					</div>
+				</div>
+				<p class="pricing-note">
+					* Pembayaran bulanan. Add-on tamu mengikuti masa aktif premium.
+				</p>
+			</div>
+
+			<!-- Right Side: Pricing Card -->
+			<div class="pricing-card-wrapper">
+				<div class="pricing-card featured">
+					<div class="pricing-badge">Paket Premium</div>
+					<h3 class="pricing-name">Premium</h3>
+					<div class="pricing-price">
+						<span class="price-amount">Rp 39.000</span>
+						<span class="price-period">/ bulan</span>
+					</div>
+					<p class="pricing-desc">Akses penuh ke semua fitur undangan digital dengan 5 undangan dan 100 tamu</p>
+					<ul class="pricing-features">
+						<li>
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+							Buat hingga 5 undangan
+						</li>
+						<li>
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+							Kuota 100 tamu per akun
+						</li>
+						<li>
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+							RSVP & ucapan online
+						</li>
+						<li>
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+							Upload foto & galeri
+						</li>
+						<li>
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+							Integrasi Google Maps
+						</li>
+						<li>
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+							Musik latar & animasi
+						</li>
+					</ul>
+					<div class="pricing-addon">
+						<strong>Add-on Tersedia:</strong>
+						<p>+ Rp 19.000 untuk tambahan 50 tamu</p>
+					</div>
+					<a href="/register" class="pricing-btn primary">
+						Mulai Berlangganan
+					</a>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
 <!-- CTA Section -->
 <section class="cta-section">
 	<div class="cta-bg">
@@ -764,4 +852,185 @@
 		text-align: center;
 		font-size: 0.85rem;
 	}
+
+	/* Pricing */
+	.pricing-section {
+		padding: 6rem 0;
+		background: linear-gradient(180deg, #f8f9ff 0%, white 100%);
+	}
+	.pricing-layout {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 3rem;
+		align-items: center;
+	}
+	.pricing-caption {
+		text-align: left;
+	}
+	.pricing-caption .section-badge {
+		margin: 0;
+	}
+	.pricing-caption .section-title {
+		text-align: left;
+		margin: 1rem 0;
+	}
+	.pricing-caption .section-subtitle {
+		text-align: left;
+		margin: 1rem 0 2rem;
+	}
+	.pricing-highlights {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		margin: 2rem 0;
+	}
+	.highlight-item {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		color: var(--color-text);
+		font-size: 0.95rem;
+	}
+	.highlight-item svg {
+		width: 20px;
+		height: 20px;
+		color: var(--color-primary);
+		flex-shrink: 0;
+	}
+	.pricing-card-wrapper {
+		display: flex;
+		justify-content: center;
+	}
+
+	@media (min-width: 900px) {
+		.pricing-layout {
+			grid-template-columns: 1fr 1fr;
+			gap: 4rem;
+		}
+	}
+
+	.pricing-card {
+		background: white;
+		border-radius: 20px;
+		padding: 2rem;
+		border: 2px solid var(--color-border);
+		position: relative;
+		transition: all 0.3s;
+		text-align: left;
+		max-width: 420px;
+		width: 100%;
+	}
+	.pricing-card:hover {
+		transform: translateY(-5px);
+		box-shadow: 0 20px 40px rgba(108, 99, 255, 0.15);
+	}
+	.pricing-card.featured {
+		border-color: var(--color-primary);
+		box-shadow: 0 10px 30px rgba(108, 99, 255, 0.2);
+	}
+	.pricing-badge {
+		position: absolute;
+		top: -12px;
+		left: 50%;
+		transform: translateX(-50%);
+		background: linear-gradient(135deg, #6c63ff, #a78bfa);
+		color: white;
+		padding: 0.4rem 1rem;
+		border-radius: 20px;
+		font-size: 0.8rem;
+		font-weight: 600;
+		white-space: nowrap;
+	}
+	.pricing-name {
+		font-family: "Playfair Display", serif;
+		font-size: 1.5rem;
+		margin: 0.5rem 0 1rem;
+	}
+	.pricing-price {
+		margin-bottom: 0.5rem;
+	}
+
+	.price-amount {
+		font-size: 2.5rem;
+		font-weight: 700;
+		color: var(--color-text);
+	}
+	.price-period {
+		font-size: 1rem;
+		color: var(--color-text-light);
+	}
+	.pricing-desc {
+		color: var(--color-text-light);
+		margin-bottom: 1.5rem;
+	}
+	.pricing-features {
+		list-style: none;
+		padding: 0;
+		margin: 0 0 2rem;
+	}
+	.pricing-features li {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.5rem 0;
+		font-size: 0.9rem;
+		color: var(--color-text);
+	}
+	.pricing-features svg {
+		width: 18px;
+		height: 18px;
+		color: var(--color-primary);
+		flex-shrink: 0;
+	}
+	.pricing-addon {
+		background: var(--color-bg);
+		padding: 1rem;
+		border-radius: 8px;
+		margin-bottom: 1.5rem;
+		border-left: 3px solid var(--color-primary);
+	}
+	.pricing-addon strong {
+		display: block;
+		margin-bottom: 0.25rem;
+		color: var(--color-text);
+		font-size: 0.9rem;
+	}
+	.pricing-addon p {
+		margin: 0;
+		color: var(--color-text-light);
+		font-size: 0.85rem;
+	}
+	.pricing-btn {
+		display: block;
+		width: 100%;
+		padding: 1rem;
+		text-align: center;
+		background: var(--color-bg);
+		border: 2px solid var(--color-primary);
+		border-radius: 12px;
+		font-weight: 600;
+		transition: all 0.3s;
+		color: var(--color-primary);
+	}
+	.pricing-btn:hover {
+		background: var(--color-primary);
+		color: white;
+	}
+	.pricing-btn.primary {
+		background: var(--color-primary);
+		color: white;
+	}
+	.pricing-btn.primary:hover {
+		background: #5a52e0;
+	}
+	.pricing-note {
+		text-align: left;
+		margin-top: 2rem;
+		font-size: 0.85rem;
+		color: var(--color-text-light);
+	}
+	.pricing-caption .pricing-note {
+		margin-top: 2rem;
+	}
+
 </style>

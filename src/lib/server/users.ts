@@ -14,6 +14,7 @@ export interface User {
 	guest_limit: number;
 	template_quota: number;
 	template_quota_used: number;
+	trial_ends_at: string | null;
 	created_at: string;
 }
 
@@ -22,12 +23,16 @@ export async function createUser(username: string, email: string, password: stri
 	const id = uuidv4();
 	const hashedPassword = bcryptjs.hashSync(password, 10);
 
+	// Set 3-day trial for new users
+	const trialEndsAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
+		.toISOString().slice(0, 19).replace('T', ' ');
+
 	await db.execute(
-		'INSERT INTO users (id, username, email, password, role, has_access, payment_status, invitation_limit, guest_limit) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-		[id, username, email, hashedPassword, role, 0, 'unpaid', 1, 50]
+		'INSERT INTO users (id, username, email, password, role, has_access, payment_status, invitation_limit, guest_limit, trial_ends_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+		[id, username, email, hashedPassword, role, 0, 'unpaid', 1, 50, trialEndsAt]
 	);
 
-	return { id, username, email, role, has_access: 0, payment_status: 'unpaid', invitation_limit: 1, guest_limit: 50, created_at: new Date().toISOString() };
+	return { id, username, email, role, has_access: 0, payment_status: 'unpaid', invitation_limit: 1, guest_limit: 50, template_quota: 0, template_quota_used: 0, trial_ends_at: trialEndsAt, created_at: new Date().toISOString() };
 }
 
 export async function authenticateUser(email: string, password: string): Promise<User | null> {
@@ -47,7 +52,7 @@ export async function authenticateUser(email: string, password: string): Promise
 
 export async function getUserById(id: string): Promise<User | null> {
 	const db = await getDb();
-	const [rows] = await db.execute('SELECT id, username, email, role, has_access, payment_status, invitation_limit, guest_limit, template_quota, template_quota_used, created_at FROM users WHERE id = ?', [id]);
+	const [rows] = await db.execute('SELECT id, username, email, role, has_access, payment_status, invitation_limit, guest_limit, template_quota, template_quota_used, trial_ends_at, created_at FROM users WHERE id = ?', [id]);
 	const userRows = rows as User[];
 
 	if (userRows.length > 0) {
@@ -58,7 +63,7 @@ export async function getUserById(id: string): Promise<User | null> {
 
 export async function getAllUsers(): Promise<User[]> {
 	const db = await getDb();
-	const [rows] = await db.execute('SELECT id, username, email, role, has_access, payment_status, invitation_limit, guest_limit, template_quota, template_quota_used, created_at FROM users');
+	const [rows] = await db.execute('SELECT id, username, email, role, has_access, payment_status, invitation_limit, guest_limit, template_quota, template_quota_used, trial_ends_at, created_at FROM users');
 	return rows as User[];
 }
 
@@ -71,7 +76,7 @@ export async function updateUserAccess(id: string, hasAccess: number, paymentSta
 		fields.push('payment_status = ?');
 		values.push(paymentStatus);
 	}
-	
+
 	if (invitationLimit !== undefined) {
 		fields.push('invitation_limit = ?');
 		values.push(invitationLimit);
@@ -118,4 +123,99 @@ export async function ensureGuestLimitColumn(): Promise<void> {
 	} catch (err) {
 		console.error('Migration Error (guest_limit):', err);
 	}
+}
+
+// ─── Forgot Password / Reset Token ───────────────────────────────────────
+
+export async function getUserByEmail(email: string): Promise<User | null> {
+	const db = await getDb();
+	const [rows] = await db.execute(
+		'SELECT id, username, email, role, has_access, payment_status, invitation_limit, guest_limit, template_quota, template_quota_used, created_at FROM users WHERE email = ?',
+		[email]
+	);
+	const userRows = rows as User[];
+	return userRows.length > 0 ? userRows[0] : null;
+}
+
+export async function saveResetToken(userId: string, hashedToken: string, expiresAt: Date): Promise<void> {
+	const db = await getDb();
+	await db.execute(
+		'UPDATE users SET reset_token = ?, reset_token_expires = ? WHERE id = ?',
+		[hashedToken, expiresAt.toISOString().slice(0, 19).replace('T', ' '), userId]
+	);
+}
+
+export async function verifyResetToken(email: string, token: string): Promise<User | null> {
+	const db = await getDb();
+	const [rows] = await db.execute(
+		'SELECT id, username, email, role, has_access, payment_status, invitation_limit, guest_limit, template_quota, template_quota_used, created_at, reset_token, reset_token_expires FROM users WHERE email = ?',
+		[email]
+	);
+	const userRows = rows as (User & { reset_token: string | null; reset_token_expires: string | null })[];
+
+	if (userRows.length === 0) return null;
+
+	const user = userRows[0];
+	if (!user.reset_token || !user.reset_token_expires) return null;
+
+	// Check expiry
+	const expiresAt = new Date(user.reset_token_expires + 'Z').getTime();
+	if (Date.now() > expiresAt) return null;
+
+	// Verify token
+	if (!bcryptjs.compareSync(token, user.reset_token)) return null;
+
+	const { reset_token: _, reset_token_expires: __, ...userWithoutToken } = user;
+	return userWithoutToken;
+}
+
+export async function clearResetToken(userId: string): Promise<void> {
+	const db = await getDb();
+	await db.execute(
+		'UPDATE users SET reset_token = NULL, reset_token_expires = NULL WHERE id = ?',
+		[userId]
+	);
+}
+
+export async function ensureResetTokenColumns(): Promise<void> {
+	const db = await getDb();
+	try {
+		const [rows] = await db.execute("SHOW COLUMNS FROM users LIKE 'reset_token'");
+		if ((rows as any[]).length === 0) {
+			console.log('Adding reset_token columns to users table...');
+			await db.execute(
+				"ALTER TABLE users ADD COLUMN reset_token VARCHAR(255) NULL AFTER template_quota_used"
+			);
+			await db.execute(
+				"ALTER TABLE users ADD COLUMN reset_token_expires DATETIME NULL AFTER reset_token"
+			);
+		}
+	} catch (err) {
+		console.error('Migration Error (reset_token):', err);
+	}
+}
+
+export async function ensureTrialColumn(): Promise<void> {
+	const db = await getDb();
+	try {
+		const [rows] = await db.execute("SHOW COLUMNS FROM users LIKE 'trial_ends_at'");
+		if ((rows as any[]).length === 0) {
+			console.log('Adding trial_ends_at column to users table...');
+			await db.execute(
+				"ALTER TABLE users ADD COLUMN trial_ends_at DATETIME NULL AFTER reset_token_expires"
+			);
+		}
+	} catch (err) {
+		console.error('Migration Error (trial_ends_at):', err);
+	}
+}
+
+export function isUserInTrial(user: User): boolean {
+	if (!user.trial_ends_at) return false;
+	return new Date(user.trial_ends_at) > new Date();
+}
+
+export function hasActiveAccess(user: User): boolean {
+	if (user.has_access === 1) return true;
+	return isUserInTrial(user);
 }

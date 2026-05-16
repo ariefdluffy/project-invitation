@@ -23,7 +23,7 @@
 		userToDelete = user;
 		showDeleteModal = true;
 	}
-	
+
 	const handleAdminFormEnhance: SubmitFunction = () => {
 		return async ({ result, update }) => {
 			await update();
@@ -147,15 +147,15 @@
 					<td>
 						<form method="POST" action="?/updateAccess" use:enhance={handleAdminFormEnhance}>
 							<input type="hidden" name="id" value={user.id} />
-							<input type="hidden" name="payment_status" value={user.payment_status} />
+							<!-- Jangan kirim payment_status saat toggle aktivasi -->
 							<input type="hidden" name="invitation_limit" value={user.invitation_limit} />
 							<input type="hidden" name="guest_limit" value={user.guest_limit} />
 							<label class="switch">
-								<input 
-									type="checkbox" 
-									name="has_access" 
-									checked={user.has_access === 1} 
-									onchange={(e) => e.target.form.requestSubmit()} 
+								<input
+									type="checkbox"
+									name="has_access"
+									checked={user.has_access === 1}
+									onchange={(e) => e.target.form.requestSubmit()}
 								/>
 								<span class="slider round"></span>
 							</label>
@@ -167,8 +167,8 @@
 							<input type="hidden" name="has_access" value={user.has_access === 1 ? 'on' : 'off'} />
 							<input type="hidden" name="invitation_limit" value={user.invitation_limit} />
 							<input type="hidden" name="guest_limit" value={user.guest_limit} />
-							<select 
-								name="payment_status" 
+							<select
+								name="payment_status"
 								class="badge-select {user.payment_status}"
 								onchange={(e) => e.target.form.requestSubmit()}
 							>
@@ -185,11 +185,11 @@
 							<input type="hidden" name="has_access" value={user.has_access === 1 ? 'on' : 'off'} />
 							<input type="hidden" name="payment_status" value={user.payment_status} />
 							<input type="hidden" name="guest_limit" value={user.guest_limit} />
-							<input 
-								type="number" 
-								name="invitation_limit" 
-								class="form-control-sm limit-input" 
-								value={user.invitation_limit} 
+							<input
+								type="number"
+								name="invitation_limit"
+								class="form-control-sm limit-input"
+								value={user.invitation_limit}
 								min="1"
 								onchange={(e) => e.target.form.requestSubmit()}
 							/>
@@ -201,11 +201,11 @@
 							<input type="hidden" name="has_access" value={user.has_access === 1 ? 'on' : 'off'} />
 							<input type="hidden" name="payment_status" value={user.payment_status} />
 							<input type="hidden" name="invitation_limit" value={user.invitation_limit} />
-							<input 
-								type="number" 
-								name="guest_limit" 
-								class="form-control-sm limit-input" 
-								value={user.guest_limit} 
+							<input
+								type="number"
+								name="guest_limit"
+								class="form-control-sm limit-input"
+								value={user.guest_limit}
 								min="1"
 								onchange={(e) => e.target.form.requestSubmit()}
 							/>
@@ -213,9 +213,9 @@
 					</td>
 					<td>
 						{#if user.role !== 'admin'}
-							<button 
-								type="button" 
-								class="btn-icon btn-danger" 
+							<button
+								type="button"
+								class="btn-icon btn-danger"
 								onclick={() => openDeleteModal(user)}
 								title="Hapus User"
 							>
@@ -227,9 +227,9 @@
 					</td>
 					<td>
 						{#if user.role !== 'admin'}
-							<button 
-								type="button" 
-								class="btn-icon btn-secondary" 
+							<button
+								type="button"
+								class="btn-icon btn-secondary"
 								onclick={() => openResetModal(user)}
 								title="Reset Password"
 							>
@@ -260,11 +260,11 @@
 				<h2>Tambah User Baru</h2>
 				<button class="btn-close" onclick={() => showAddModal = false}>✕</button>
 			</div>
-			
+
 			{#if form?.error}
 				<div class="error-message">{form.error}</div>
 			{/if}
-			
+
 			<form method="POST" action="?/addUser" use:enhance={handleAdminFormEnhance}>
 				<div class="form-group">
 					<label for="username">Username</label>
@@ -285,7 +285,7 @@
 						<option value="admin">Admin</option>
 					</select>
 				</div>
-				
+
 				<div class="modal-actions">
 					<button type="button" class="btn btn-secondary" onclick={() => showAddModal = false}>Batal</button>
 					<button type="submit" class="btn btn-primary">Simpan User</button>
@@ -313,7 +313,7 @@
 				<button class="btn-close" onclick={() => showResetModal = false}>✕</button>
 			</div>
 			<p>Anda yakin ingin mereset password untuk pengguna <strong>{userToReset.username}</strong>? Password baru akan dibuat secara acak dan ditampilkan setelah proses selesai. Tindakan ini tidak dapat dibatalkan.</p>
-			
+
 			<form method="POST" action="?/resetPassword" use:enhance={handleAdminFormEnhance}>
 				<input type="hidden" name="id" value={userToReset.id} />
 				<div class="modal-actions">
@@ -547,7 +547,7 @@
 		background: #e2e8f0;
 		color: #475569;
 	}
-	
+
 	.btn-icon {
 		background: none;
 		border: none;
@@ -571,7 +571,7 @@
 		font-size: 0.8rem;
 		background: #fff;
 	}
-	
+
 	.limit-input {
 		width: 60px;
 		text-align: center;

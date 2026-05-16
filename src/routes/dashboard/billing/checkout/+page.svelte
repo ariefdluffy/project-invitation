@@ -89,15 +89,46 @@
 				{/if}
 			</header>
 
+			<!-- Promo Code Form -->
+			{#if !data.promo}
+				<form method="GET" class="promo-form">
+					<input type="hidden" name="package" value={data.packageSlug} />
+					<div class="promo-input-group">
+						<input
+							type="text"
+							name="promo"
+							placeholder="Punya kode promo?"
+							class="promo-input"
+							maxlength="20"
+						/>
+						<button type="submit" class="promo-btn">Terapkan</button>
+					</div>
+				</form>
+			{/if}
+
 			<section class="checkout-summary" aria-label="Ringkasan pesanan">
 				<div class="summary-row">
-					<span class="summary-label">Layanan</span>
-					<span class="summary-value">{data.itemName}</span>
+					<span class="summary-label">Paket</span>
+					<span class="summary-value">{data.packageName}</span>
+				</div>
+				<div class="summary-row">
+					<span class="summary-label">Deskripsi</span>
+					<span class="summary-value">{data.packageDesc}</span>
 				</div>
 				<div class="summary-row summary-row--stack">
 					<span class="summary-label">ID pesanan</span>
 					<code class="order-id" title={data.orderId}>{data.orderId}</code>
 				</div>
+				{#if data.promo}
+					<div class="summary-row">
+						<span class="summary-label">Harga asli</span>
+						<span class="summary-value">Rp {Number(data.originalPrice).toLocaleString('id-ID')}</span>
+					</div>
+					<div class="summary-row" style="color: #86efac;">
+						<span class="summary-label">Diskon ({data.promo.code})</span>
+						<span class="summary-value">- Rp {Number(data.discount).toLocaleString('id-ID')}</span>
+					</div>
+				{/if}
 				<div class="summary-total">
 					<div class="summary-total__text">
 						<span class="total-label">Total pembayaran</span>
@@ -496,5 +527,61 @@
 
 	.checkout-back-btn {
 		min-width: 12rem;
+	}
+
+	/* Promo Form */
+	.promo-form {
+		margin-bottom: 1.5rem;
+	}
+
+	.promo-input-group {
+		display: flex;
+		gap: 0.5rem;
+	}
+
+	.promo-input {
+		flex: 1;
+		padding: 0.75rem 1rem;
+		border: 1px solid var(--dash-border);
+		border-radius: 10px;
+		background: rgba(0, 0, 0, 0.2);
+		color: var(--dash-text);
+		font-size: 0.9rem;
+		font-family: inherit;
+		transition: all 0.2s;
+	}
+
+	.promo-input:focus {
+		outline: none;
+		border-color: var(--dash-accent);
+		box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
+	}
+
+	.promo-input::placeholder {
+		color: var(--dash-text-muted);
+	}
+
+	.promo-btn {
+		padding: 0.75rem 1.5rem;
+		border: none;
+		border-radius: 10px;
+		background: rgba(108, 99, 255, 0.15);
+		color: var(--dash-accent);
+		font-size: 0.88rem;
+		font-weight: 700;
+		font-family: inherit;
+		cursor: pointer;
+		transition: all 0.2s;
+		border: 1px solid rgba(108, 99, 255, 0.3);
+	}
+
+	.promo-btn:hover {
+		background: var(--dash-accent);
+		color: white;
+		transform: translateY(-1px);
+	}
+
+	.promo-btn:active {
+		transform: translateY(0);
 	}
 </style>

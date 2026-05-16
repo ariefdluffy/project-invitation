@@ -26,6 +26,38 @@
 	<h1>📊 Admin Overview</h1>
 </div>
 
+<!-- Quick Links -->
+<div class="quick-links">
+	<a href="/admin/users" class="quick-link-card">
+		<div class="ql-icon">👥</div>
+		<div class="ql-info">
+			<h3>Users</h3>
+			<p>{data.monitoring?.users?.total || data.users.length} user</p>
+		</div>
+	</a>
+	<a href="/admin/promo" class="quick-link-card">
+		<div class="ql-icon">🏷️</div>
+		<div class="ql-info">
+			<h3>Promo Codes</h3>
+			<p>Kelola kode promo</p>
+		</div>
+	</a>
+	<a href="/admin/audit" class="quick-link-card">
+		<div class="ql-icon">📋</div>
+		<div class="ql-info">
+			<h3>Audit Logs</h3>
+			<p>{data.monitoring?.totalAuditLogs || 0} entri</p>
+		</div>
+	</a>
+	<a href="/api/monitoring" class="quick-link-card" target="_blank">
+		<div class="ql-icon">📡</div>
+		<div class="ql-info">
+			<h3>Monitoring API</h3>
+			<p>Views: {data.monitoring?.totalPageViews || 0}</p>
+		</div>
+	</a>
+</div>
+
 <div class="dash-stats">
 	{#each stats as stat, i}
 		<div class="dash-stat" style="animation: fadeInUp 0.5s ease {i * 0.1}s both">
@@ -131,6 +163,41 @@
 </div>
 
 <style>
+	.quick-links {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+		gap: 1rem;
+		margin-bottom: 1.5rem;
+	}
+	.quick-link-card {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		padding: 1.25rem;
+		background: var(--dash-card-bg, #1a1a2e);
+		border: 1px solid var(--dash-border, rgba(255,255,255,0.08));
+		border-radius: 12px;
+		text-decoration: none;
+		color: var(--dash-text);
+		transition: all 0.2s;
+	}
+	.quick-link-card:hover {
+		transform: translateY(-2px);
+		border-color: var(--dash-accent, #6c63ff);
+		box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+	}
+	.ql-icon {
+		font-size: 2rem;
+	}
+	.ql-info h3 {
+		font-size: 0.95rem;
+		font-weight: 600;
+		margin-bottom: 0.2rem;
+	}
+	.ql-info p {
+		font-size: 0.8rem;
+		color: var(--dash-text-muted, #888);
+	}
 	.payment-overview {
 		margin-bottom: 1.5rem;
 	}

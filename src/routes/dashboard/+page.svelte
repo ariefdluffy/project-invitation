@@ -25,6 +25,31 @@
 	</a>
 </div>
 
+<!-- Analytics Overview -->
+<div class="analytics-overview">
+	<div class="analytics-card">
+		<span class="analytics-icon">👁</span>
+		<div class="analytics-info">
+			<span class="analytics-value">{data.userStats?.totalViews || 0}</span>
+			<span class="analytics-label">Total Views</span>
+		</div>
+	</div>
+	<div class="analytics-card">
+		<span class="analytics-icon">👤</span>
+		<div class="analytics-info">
+			<span class="analytics-value">{data.userStats?.totalUniqueVisitors || 0}</span>
+			<span class="analytics-label">Unique Visitors</span>
+		</div>
+	</div>
+	<div class="analytics-card">
+		<span class="analytics-icon">💌</span>
+		<div class="analytics-info">
+			<span class="analytics-value">{data.userStats?.totalRsvp || 0}</span>
+			<span class="analytics-label">RSVP Masuk</span>
+		</div>
+	</div>
+</div>
+
 {#if data.user.role !== 'admin' && data.user.has_access !== 1}
 	<div class="dash-banner warning" style="animation: slideInDown 0.5s ease">
 		<div class="banner-content">
@@ -88,6 +113,42 @@
 </div>
 
 <style>
+	.analytics-overview {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 1rem;
+		margin-bottom: 2rem;
+	}
+	.analytics-card {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		padding: 1.25rem;
+		background: var(--dash-card-bg, #1a1a2e);
+		border: 1px solid var(--dash-border, rgba(255,255,255,0.08));
+		border-radius: 12px;
+	}
+	.analytics-icon {
+		font-size: 2rem;
+	}
+	.analytics-info {
+		display: flex;
+		flex-direction: column;
+	}
+	.analytics-value {
+		font-size: 1.5rem;
+		font-weight: 700;
+		line-height: 1.2;
+	}
+	.analytics-label {
+		font-size: 0.8rem;
+		color: var(--dash-text-muted, #888);
+	}
+	@media (max-width: 600px) {
+		.analytics-overview {
+			grid-template-columns: 1fr;
+		}
+	}
 	.dash-header-sub {
 		color: var(--dash-text-muted);
 		font-size: 0.95rem;
@@ -170,28 +231,28 @@
 		margin-bottom: 2rem;
 		gap: 1.5rem;
 	}
-	
+
 	.dash-banner.warning {
 		background: #fff7ed;
 		border: 1px solid #ffedd5;
 		color: #9a3412;
 	}
-	
+
 	.banner-content {
 		display: flex;
 		align-items: center;
 		gap: 1rem;
 	}
-	
+
 	.banner-icon {
 		font-size: 1.5rem;
 	}
-	
+
 	.banner-text strong {
 		display: block;
 		margin-bottom: 0.25rem;
 	}
-	
+
 	.banner-text p {
 		font-size: 0.9rem;
 		opacity: 0.9;

@@ -95,10 +95,10 @@ export async function updateInvitation(id: string, data: Partial<Invitation>): P
 	];
 
 	const templates = await getTemplates();
-	// Validasi template_id jika ada dalam data. 
-    // HAPUS template_id dari 'data' jika tidak valid AGAR TIDAK DI-UPDATE, 
+	// Validasi template_id jika ada dalam data.
+    // HAPUS template_id dari 'data' jika tidak valid AGAR TIDAK DI-UPDATE,
     // namun kita perlu memastikan 'fields' dan 'values' array tidak terisi template_id jika dihapus.
-    
+
 	if (data.template_id) {
 		const templateExists = templates.some(t => t.id === data.template_id);
 		if (!templateExists) {
@@ -168,7 +168,7 @@ export async function duplicateInvitation(id: string): Promise<string> {
 			quote, quote_source, akad_date, akad_time, resepsi_date, resepsi_time,
 			venue_name, venue_address, venue_map_url, love_story, bank_accounts,
 			dress_code_colors, music_url, background_image, gallery_images, respect_person
-		) SELECT 
+		) SELECT
 			?, user_id, template_id, ?,
 			groom_name, groom_full_name, groom_parents, groom_instagram, groom_photo,
 			bride_name, bride_full_name, bride_parents, bride_instagram, bride_photo,
@@ -185,7 +185,7 @@ export async function duplicateInvitation(id: string): Promise<string> {
 // Guest operations
 export async function addGuest(invitationId: string, name: string): Promise<Guest> {
 	const db = await getDb();
-	
+
 	// Get invitation owner
 	const [invRows] = await db.execute('SELECT user_id FROM invitations WHERE id = ?', [invitationId]);
 	const inv = (invRows as any[])[0];
@@ -198,9 +198,9 @@ export async function addGuest(invitationId: string, name: string): Promise<Gues
 
 	// Count TOTAL guests of this user across all their invitations
 	const [countRows] = await db.execute(`
-		SELECT COUNT(g.id) as count 
-		FROM guests g 
-		JOIN invitations i ON g.invitation_id = i.id 
+		SELECT COUNT(g.id) as count
+		FROM guests g
+		JOIN invitations i ON g.invitation_id = i.id
 		WHERE i.user_id = ?
 	`, [inv.user_id]);
 	const currentCount = (countRows as any[])[0].count;
@@ -266,9 +266,15 @@ export async function deleteWish(id: string): Promise<void> {
 export interface Template {
 	id: string;
 	name: string;
+	slug?: string;
 	category: string;
 	thumbnail: string;
 	description: string;
+	primary_color?: string;
+	secondary_color?: string;
+	accent_color?: string;
+	font_family?: string;
+	layout_style?: string;
 	defaultContent: Record<string, any>;
 }
 
@@ -279,7 +285,7 @@ export async function getTemplates(): Promise<Template[]> {
 		console.warn('TEMPLATES_DIR does not exist:', TEMPLATES_DIR);
 		return [];
 	}
-	
+
 	const templates: Template[] = [];
 	try {
 		const categories = fs.readdirSync(TEMPLATES_DIR);
@@ -294,7 +300,7 @@ export async function getTemplates(): Promise<Template[]> {
 						const tmpl = JSON.parse(content);
 						templates.push({
 							...tmpl,
-							category: cat 
+							category: cat
 						});
 					} catch (err) {
 						console.error(`Error loading template ${file}:`, err);
@@ -326,14 +332,14 @@ export async function getTemplateBySlug(slug: string): Promise<Template | null> 
 export async function fixMusicLinks(): Promise<void> {
 	const db = await getDb();
 	const newMusic = 'https://server14.mp3quran.net/khalf/004.mp3';
-	
+
 	try {
 		// Update settings
 		await db.execute("UPDATE settings SET value = ? WHERE `key` = 'default_music_url'", [newMusic]);
-		
+
 		// Update existing invitations to the new default
 		await db.execute("UPDATE invitations SET music_url = ?", [newMusic]);
-		
+
 		console.log('Music links updated to Murottal.');
 	} catch (err) {
 		console.error('Error fixing music links:', err);
@@ -342,10 +348,10 @@ export async function fixMusicLinks(): Promise<void> {
 
 export async function ensureRespectColumn(): Promise<void> {
 	const db = await getDb();
-	
+
 	// Also fix music links during migration
 	await fixMusicLinks();
-	
+
 	try {
 		const [rows] = await db.execute("SHOW COLUMNS FROM invitations LIKE 'respect_person'");
 		if ((rows as any[]).length === 0) {
@@ -376,7 +382,7 @@ export async function ensureTemplateCategoryColumn(): Promise<void> {
 
 export async function seedTemplates(): Promise<void> {
 	const db = await getDb();
-	
+
 	// Ensure schema is updated
 	await ensureRespectColumn();
 	await ensureGuestLimitColumn();
@@ -435,7 +441,8 @@ export async function seedSettings(): Promise<void> {
 		{ key: 'midtrans_server_key', value: '' },
 		{ key: 'midtrans_client_key', value: '' },
 		{ key: 'midtrans_is_production', value: '0' },
-		{ key: 'default_music_url', value: 'https://server14.mp3quran.net/khalf/004.mp3' }
+		{ key: 'default_music_url', value: 'https://server14.mp3quran.net/khalf/004.mp3' },
+		{ key: 'turnstile_site_key', value: '1x00000000000000000000AA' }
 	];
 
 	for (const s of defaultSettings) {
@@ -460,7 +467,7 @@ export async function seedAdmin(): Promise<void> {
 export async function getGuestStatsByUser(userId: string) {
 	const db = await getDb();
 	const [rows] = await db.execute(`
-		SELECT 
+		SELECT
 			COUNT(g.id) as total,
 			SUM(CASE WHEN g.is_attending = 1 THEN 1 ELSE 0 END) as attending,
 			SUM(CASE WHEN g.is_attending = 0 AND g.has_responded = 1 THEN 1 ELSE 0 END) as not_attending,
