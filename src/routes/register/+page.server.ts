@@ -3,7 +3,7 @@ import { fail, redirect } from "@sveltejs/kit";
 import { createUser } from "$lib/server/users";
 import { createSessionToken } from "$lib/server/session";
 import { logAudit } from "$lib/server/audit-log";
-import { SECRET_KEY } from "$env/static/private";
+import { TURNSTILE_SECRET_KEY } from "$env/static/private";
 import { dev } from "$app/environment";
 import { checkRateLimit, ipKey } from "$lib/server/rate-limiter";
 import { sendWelcomeEmail } from "$lib/server/email";
@@ -60,7 +60,7 @@ export const actions: Actions = {
 
     try {
       const params = new URLSearchParams({
-        secret: SECRET_KEY,
+        secret: TURNSTILE_SECRET_KEY,
         response: turnstileResponse,
       });
       const verifyRes = await fetch(

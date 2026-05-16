@@ -434,15 +434,14 @@ export async function seedTemplates(): Promise<void> {
 export async function seedSettings(): Promise<void> {
 	const db = await getDb();
 	const defaultSettings = [
-		{ key: 'app_name', value: 'Wedding.id' },
-		{ key: 'premium_price', value: '149000' },
+		{ key: 'app_name', value: 'Lembar Moment' },
+		{ key: 'premium_price', value: '39000' },
 		{ key: 'addon_guest_price', value: '19000' },
 		{ key: 'addon_guest_quantity', value: '50' },
 		{ key: 'midtrans_server_key', value: '' },
 		{ key: 'midtrans_client_key', value: '' },
 		{ key: 'midtrans_is_production', value: '0' },
-		{ key: 'default_music_url', value: 'https://server14.mp3quran.net/khalf/004.mp3' },
-		{ key: 'turnstile_site_key', value: '1x00000000000000000000AA' }
+		{ key: 'default_music_url', value: 'https://server14.mp3quran.net/khalf/004.mp3' }
 	];
 
 	for (const s of defaultSettings) {

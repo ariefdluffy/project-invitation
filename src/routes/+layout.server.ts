@@ -2,10 +2,8 @@ import type { LayoutServerLoad } from './$types';
 import { getSetting } from '$lib/server/settings';
 
 export const load: LayoutServerLoad = async ({ locals, cookies }) => {
-	const [appName, turnstileSiteKey] = await Promise.all([
-		getSetting('app_name'),
-		getSetting('turnstile_site_key')
-	]);
+	const appName = await getSetting('app_name');
+	const turnstileSiteKey = process.env.PUBLIC_TURNSTILE_SITE_KEY || '1x00000000000000000000AA';
 
 	const flashCookie = cookies.get('flash');
 	let flash: { id?: string; type?: string; message?: string } | null = null;

@@ -3,14 +3,14 @@ import { fail } from '@sveltejs/kit';
 import { getUserByEmail, saveResetToken } from '$lib/server/users';
 import { sendPasswordResetEmail } from '$lib/server/email';
 import { getSetting } from '$lib/server/settings';
-import { SECRET_KEY } from '$env/static/private';
+import { TURNSTILE_SECRET_KEY } from '$env/static/private';
 import { checkRateLimit, ipKey } from '$lib/server/rate-limiter';
 import crypto from 'crypto';
 import bcryptjs from 'bcryptjs';
 
 export const load: PageServerLoad = async () => {
-	const turnstileSiteKey = await getSetting('turnstile_site_key');
-	return { turnstileSiteKey: turnstileSiteKey || '1x00000000000000000000AA' };
+	const turnstileSiteKey = process.env.PUBLIC_TURNSTILE_SITE_KEY || '1x00000000000000000000AA';
+	return { turnstileSiteKey };
 };
 
 export const actions: Actions = {
@@ -42,7 +42,7 @@ export const actions: Actions = {
 
 		try {
 			const params = new URLSearchParams({
-				secret: SECRET_KEY,
+				secret: TURNSTILE_SECRET_KEY,
 				response: turnstileResponse
 			});
 			const verifyRes = await fetch(
