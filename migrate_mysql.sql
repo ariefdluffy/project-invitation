@@ -105,3 +105,46 @@ CREATE TABLE IF NOT EXISTS settings (
 -- Seed Default Settings
 INSERT INTO settings (`key`, `value`) VALUES ('premium_price', '149000') ON DUPLICATE KEY UPDATE `value`=VALUES(`value`);
 INSERT INTO settings (`key`, `value`) VALUES ('app_name', 'Wedding.id') ON DUPLICATE KEY UPDATE `value`=VALUES(`value`);
+
+-- 7. Audit Logs Table
+CREATE TABLE IF NOT EXISTS audit_logs (
+    id VARCHAR(36) PRIMARY KEY,
+    action VARCHAR(50) NOT NULL,
+    user_id VARCHAR(36) NULL,
+    email VARCHAR(100) NULL,
+    details TEXT NULL,
+    ip VARCHAR(45) NULL,
+    metadata JSON NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_action (action),
+    INDEX idx_user_id (user_id),
+    INDEX idx_created_at (created_at)
+);
+
+-- 8. Payment Transactions Table
+CREATE TABLE IF NOT EXISTS payment_transactions (
+    id VARCHAR(36) PRIMARY KEY,
+    user_id VARCHAR(36) NOT NULL,
+    order_id VARCHAR(100) NOT NULL,
+    type ENUM('premium', 'addon') NOT NULL,
+    amount DECIMAL(10,2) DEFAULT 0,
+    status VARCHAR(20) DEFAULT 'pending',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_user_id (user_id),
+    INDEX idx_order_id (order_id)
+);
+
+-- 9. Promo Codes Table
+CREATE TABLE IF NOT EXISTS promo_codes (
+    id VARCHAR(36) PRIMARY KEY,
+    code VARCHAR(50) UNIQUE NOT NULL,
+    discount_type ENUM('percentage', 'fixed') NOT NULL,
+    discount_value DECIMAL(10,2) NOT NULL,
+    min_amount DECIMAL(10,2) DEFAULT 0,
+    max_uses INT DEFAULT 1,
+    used_count INT DEFAULT 0,
+    expires_at DATE NULL,
+    is_active TINYINT DEFAULT 1,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
