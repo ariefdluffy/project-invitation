@@ -1,3 +1,26 @@
+const path = require('path');
+
+// Load .env file dengan cara yang lebih reliable
+const fs = require('fs');
+const envPath = path.join(__dirname, '.env');
+
+if (fs.existsSync(envPath)) {
+  const envContent = fs.readFileSync(envPath, 'utf8');
+  envContent.split('\n').forEach(line => {
+    const trimmed = line.trim();
+    if (trimmed && !trimmed.startsWith('#')) {
+      const [key, ...valueParts] = trimmed.split('=');
+      if (key && valueParts.length > 0) {
+        const value = valueParts.join('=').replace(/^["']|["']$/g, '');
+        process.env[key.trim()] = value.trim();
+      }
+    }
+  });
+  console.log('[PM2] Environment file loaded from:', envPath);
+} else {
+  console.warn('[PM2] Warning: .env file not found at', envPath);
+}
+
 module.exports = {
   apps: [
     {
@@ -7,6 +30,11 @@ module.exports = {
       name: 'project-invitation',
       script: './build/index.js',
       cwd: '/var/www/project-invitation',
+
+      // ========================================
+      // Environment File (Cara PM2 membaca .env)
+      // ========================================
+      env_file: '/var/www/project-invitation/.env',
 
       // ========================================
       // Environment Variables
@@ -33,7 +61,6 @@ module.exports = {
       // ========================================
       // Memory Management
       // ========================================
-      // 512MB untuk production
       max_memory_restart: '512M',
 
       // ========================================
@@ -70,7 +97,7 @@ module.exports = {
       ref: 'origin/main',
       repo: 'https://github.com/your-repo/project-invitation.git',
       path: '/opt/project-invitation',
-      'post-deploy': 'npm install && npm run build && pm2 restart wedding-invitation',
+      'post-deploy': 'npm install && npm run build && pm2 restart project-invitation',
       'pre-deploy-local': 'echo "Deploying to production"'
     }
   }
