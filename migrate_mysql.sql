@@ -7,10 +7,25 @@ CREATE DATABASE IF NOT EXISTS wedding_db;
 USE wedding_db;
 
 -- =====================================================
+-- Helper: Drop existing tables (for clean migration)
+-- =====================================================
+-- DROP TABLE IF EXISTS payment_transactions;
+-- DROP TABLE IF EXISTS promo_codes;
+-- DROP TABLE IF EXISTS page_views;
+-- DROP TABLE IF EXISTS audit_logs;
+-- DROP TABLE IF EXISTS wishes;
+-- DROP TABLE IF EXISTS guests;
+-- DROP TABLE IF EXISTS invitations;
+-- DROP TABLE IF EXISTS sessions;
+-- DROP TABLE IF EXISTS templates;
+-- DROP TABLE IF EXISTS packages;
+-- DROP TABLE IF EXISTS users;
+
+-- =====================================================
 -- 1. Users Table
 -- =====================================================
 CREATE TABLE IF NOT EXISTS users (
-    id VARCHAR(36) PRIMARY KEY,
+    id VARCHAR(50) PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
@@ -34,7 +49,7 @@ CREATE TABLE IF NOT EXISTS users (
 -- =====================================================
 CREATE TABLE IF NOT EXISTS sessions (
     id VARCHAR(36) PRIMARY KEY,
-    user_id VARCHAR(36) NOT NULL,
+    user_id VARCHAR(50) NOT NULL,
     expires_at DATETIME NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
@@ -46,7 +61,7 @@ CREATE TABLE IF NOT EXISTS sessions (
 -- 3. Templates Table
 -- =====================================================
 CREATE TABLE IF NOT EXISTS templates (
-    id VARCHAR(36) PRIMARY KEY,
+    id VARCHAR(50) PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     slug VARCHAR(100) UNIQUE NOT NULL,
     description TEXT,
@@ -69,9 +84,9 @@ CREATE TABLE IF NOT EXISTS templates (
 -- 4. Invitations Table
 -- =====================================================
 CREATE TABLE IF NOT EXISTS invitations (
-    id VARCHAR(36) PRIMARY KEY,
-    user_id VARCHAR(36) NOT NULL,
-    template_id VARCHAR(36) NOT NULL,
+    id VARCHAR(50) PRIMARY KEY,
+    user_id VARCHAR(50) NOT NULL,
+    template_id VARCHAR(50) NOT NULL,
     slug VARCHAR(100) UNIQUE NOT NULL,
     groom_name VARCHAR(100) NOT NULL,
     groom_full_name VARCHAR(255),
@@ -113,8 +128,8 @@ CREATE TABLE IF NOT EXISTS invitations (
 -- 5. Guests Table
 -- =====================================================
 CREATE TABLE IF NOT EXISTS guests (
-    id VARCHAR(36) PRIMARY KEY,
-    invitation_id VARCHAR(36) NOT NULL,
+    id VARCHAR(50) PRIMARY KEY,
+    invitation_id VARCHAR(50) NOT NULL,
     name VARCHAR(100) NOT NULL,
     slug VARCHAR(100) NOT NULL,
     is_attending TINYINT DEFAULT 0,
@@ -131,8 +146,8 @@ CREATE TABLE IF NOT EXISTS guests (
 -- 6. Wishes Table
 -- =====================================================
 CREATE TABLE IF NOT EXISTS wishes (
-    id VARCHAR(36) PRIMARY KEY,
-    invitation_id VARCHAR(36) NOT NULL,
+    id VARCHAR(50) PRIMARY KEY,
+    invitation_id VARCHAR(50) NOT NULL,
     guest_name VARCHAR(100) NOT NULL,
     message TEXT NOT NULL,
     is_attending VARCHAR(20) DEFAULT 'hadir',
@@ -156,7 +171,7 @@ CREATE TABLE IF NOT EXISTS settings (
 CREATE TABLE IF NOT EXISTS audit_logs (
     id VARCHAR(36) PRIMARY KEY,
     action VARCHAR(50) NOT NULL,
-    user_id VARCHAR(36) NULL,
+    user_id VARCHAR(50) NULL,
     email VARCHAR(100) NULL,
     details TEXT NULL,
     ip VARCHAR(45) NULL,
@@ -172,7 +187,7 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 -- =====================================================
 CREATE TABLE IF NOT EXISTS page_views (
     id VARCHAR(36) PRIMARY KEY,
-    invitation_id VARCHAR(36) NOT NULL,
+    invitation_id VARCHAR(50) NOT NULL,
     guest_ip VARCHAR(45) NULL,
     user_agent VARCHAR(500) NULL,
     referrer VARCHAR(500) NULL,
@@ -209,7 +224,7 @@ CREATE TABLE IF NOT EXISTS packages (
 -- =====================================================
 CREATE TABLE IF NOT EXISTS payment_transactions (
     id VARCHAR(36) PRIMARY KEY,
-    user_id VARCHAR(36) NOT NULL,
+    user_id VARCHAR(50) NOT NULL,
     order_id VARCHAR(50) NOT NULL UNIQUE,
     type ENUM('premium', 'addon') NOT NULL,
     amount INT NOT NULL,
