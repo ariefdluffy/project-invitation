@@ -6,7 +6,7 @@ module.exports = {
       // ========================================
       name: 'project-invitation',
       script: './build/index.js',
-      cwd: '/home/miftah/project-invitation',
+      cwd: '/var/www/project-invitation',
 
       // ========================================
       // Environment Variables
