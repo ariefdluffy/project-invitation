@@ -107,9 +107,12 @@ export const handle: Handle = async ({ event, resolve }) => {
   // - In dev we relax script-src so Vite HMR (which uses inline scripts and eval)
   //   keeps working. We must NOT include a nonce here, because the CSP spec says
   //   `'unsafe-inline'` is ignored whenever a nonce/hash is also listed, which
-  //   would block Vite's HMR scripts and SvelteKit hydration scripts.
-  // - The strict policy (with nonce + strict-dynamic) is used for production
-  //   builds where SvelteKit injects nonces on its own script tags.
+  //   would block Vite's HMR scripts.
+  // - In production, `csp.mode: 'nonce'` in svelte.config.js makes SvelteKit read
+  //   `event.locals.cspNonce` and add it to <script> and <style> tags, so the
+  //   nonce in this header matches what SvelteKit outputs.
+  // - `style-src` keeps `'unsafe-inline'` because for CSS the keyword is still
+  //   honoured alongside nonces (unlike script-src where nonce overrides it).
   const scriptSrc = dev
     ? `'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://*.cloudflare.com https://static.cloudflareinsights.com`
     : `'self' 'nonce-${nonce}' 'strict-dynamic' https://challenges.cloudflare.com https://*.cloudflare.com https://static.cloudflareinsights.com`;
@@ -118,8 +121,8 @@ export const handle: Handle = async ({ event, resolve }) => {
     "default-src 'self'",
     `script-src ${scriptSrc}`,
     `script-src-elem ${scriptSrc}`,
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com",
+    `style-src 'self' 'unsafe-inline' 'nonce-${nonce}' https://fonts.googleapis.com`,
+    `style-src-elem 'self' 'unsafe-inline' 'nonce-${nonce}' https://fonts.googleapis.com https://fonts.gstatic.com`,
     "img-src 'self' data: blob: https://challenges.cloudflare.com https://*.cloudflare.com https://images.unsplash.com https://*.unsplash.com https://res.cloudinary.com https://*.cloudinary.com",
     "font-src 'self' data: https://fonts.gstatic.com",
     "connect-src 'self' https://challenges.cloudflare.com https://*.cloudflare.com https://static.cloudflareinsights.com",

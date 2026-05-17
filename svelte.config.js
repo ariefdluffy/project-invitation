@@ -14,8 +14,11 @@ const config = {
 
 		// Add CSP nonce to all SvelteKit-generated <script> and <style> tags so they
 		// satisfy our nonce-based Content-Security-Policy in production.
+		// Use `nonce` mode so SvelteKit reads `event.locals.cspNonce` from
+		// hooks.server.ts and adds it to all generated <script> and <style> tags.
+		// This guarantees the nonce in the CSP header matches the nonce on tags.
 		csp: {
-			mode: 'auto',
+			mode: 'nonce',
 			directives: {
 				'script-src': ['self']
 			}

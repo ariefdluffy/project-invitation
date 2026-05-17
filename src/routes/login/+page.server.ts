@@ -251,7 +251,7 @@ export const actions: Actions = {
 				const rawToken = await regenerateEmailVerifyToken(user.id);
 				const origin = process.env.ORIGIN || 'https://temuin.web.id';
 				const verifyLink = `${origin}/verify-email/${rawToken}`;
-				const appName = await getSetting("app_name") || "Wedding.id";
+				const appName = await getSetting("app_name") || "Lembar Moment";
 
 				sendVerificationEmail(email, verifyLink, appName).catch((err) => {
 					console.error('[ResendVerification] Failed to send email:', err);
