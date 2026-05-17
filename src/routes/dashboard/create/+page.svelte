@@ -150,7 +150,28 @@
   let bankAccounts = $state([{ bank: "", number: "", name: "" }]);
   let dressColors = $state(["#8B6914", "#D4A574", "#FDF6E3"]);
   let showToast = $state(false);
-  let previewingTemplate = $state(null);
+  let previewingTemplate = $state<typeof data.templates[0] | null>(null);
+
+  // Track iframe load state for thumbnails
+  let iframeLoaded = $state<Record<string, boolean>>({});
+  function onThumbLoad(id: string) {
+    iframeLoaded = { ...iframeLoaded, [id]: true };
+  }
+
+  // Category colors
+  const categoryColors: Record<string, string> = {
+    pernikahan: '#a78bfa',
+    anniversary: '#f472b6',
+    aqiqah: '#34d399',
+    khitan: '#fbbf24',
+    formal: '#60a5fa',
+    corporate: '#60a5fa',
+    birthday: '#fb923c',
+    gathering: '#a3e635'
+  };
+  function catColor(cat: string) {
+    return categoryColors[cat?.toLowerCase()] ?? '#8888aa';
+  }
 
   function addBankAccount() {
     bankAccounts = [...bankAccounts, { bank: "", number: "", name: "" }];
@@ -267,25 +288,53 @@
             onchange={() => (selectedTemplate = template.id)}
             required
           />
+
+          <!-- Live iframe thumbnail -->
           <div class="template-thumb-container">
-            <img
-              src={template.thumbnail}
-              alt={template.name}
-              class="template-img"
-            />
+            {#if !iframeLoaded[template.id]}
+              <div class="thumb-skeleton">
+                <div class="thumb-shimmer"></div>
+                <span class="thumb-skeleton-label">Memuat…</span>
+              </div>
+            {/if}
+            <iframe
+              src="/demo/{template.id}"
+              title="Preview {template.name}"
+              class="thumb-iframe"
+              class:thumb-loaded={iframeLoaded[template.id]}
+              loading="lazy"
+              scrolling="no"
+              tabindex="-1"
+              aria-hidden="true"
+              onload={() => onThumbLoad(template.id)}
+            ></iframe>
+            <!-- Overlay blocks clicks -->
+            <div class="thumb-overlay" aria-hidden="true"></div>
+            <!-- Category badge -->
+            <span
+              class="thumb-cat-badge"
+              style="background:{catColor(template.category)}22;color:{catColor(template.category)};border-color:{catColor(template.category)}44"
+            >{getTemplateCategoryLabel(template.category)}</span>
+            <!-- Selected checkmark -->
             {#if selectedTemplateId === template.id}
               <div class="selected-overlay">
                 <span class="check-icon">✓</span>
               </div>
             {/if}
           </div>
+
           <div class="template-opt-info">
             <div class="info-top">
               <div class="info-top-text">
-                <span class="template-category-pill"
-                  >{getTemplateCategoryLabel(template.category)}</span
-                >
                 <h4>{template.name}</h4>
+                <div class="tmpl-meta-row">
+                  {#if template.layout_style}
+                    <span class="tmpl-chip">{template.layout_style}</span>
+                  {/if}
+                  {#if template.font_family}
+                    <span class="tmpl-chip">{template.font_family}</span>
+                  {/if}
+                </div>
               </div>
               <button
                 type="button"
@@ -295,10 +344,22 @@
                   previewingTemplate = template;
                 }}
               >
-                🔍 Preview
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                Preview
               </button>
             </div>
-            <p>{template.description}</p>
+            <p class="tmpl-desc">{template.description}</p>
+            <div class="tmpl-swatches">
+              {#if template.primary_color}
+                <span class="tmpl-swatch" style="background:{template.primary_color}" title="Primary"></span>
+              {/if}
+              {#if template.secondary_color}
+                <span class="tmpl-swatch" style="background:{template.secondary_color}" title="Secondary"></span>
+              {/if}
+              {#if template.accent_color}
+                <span class="tmpl-swatch" style="background:{template.accent_color};border:1px solid rgba(255,255,255,0.15)" title="Accent"></span>
+              {/if}
+            </div>
           </div>
         </label>
       {/each}
@@ -307,15 +368,37 @@
 
   <!-- Preview Modal -->
   {#if previewingTemplate}
-    <div class="modal-backdrop" onclick={() => (previewingTemplate = null)}>
-      <div class="preview-modal" onclick={(e) => e.stopPropagation()}>
+    <div
+      class="modal-backdrop"
+      role="button"
+      tabindex="0"
+      aria-label="Tutup preview"
+      onclick={() => (previewingTemplate = null)}
+      onkeydown={(e) => e.key === 'Escape' && (previewingTemplate = null)}
+    >
+      <div
+        class="preview-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Preview template"
+        tabindex="0"
+        onclick={(e) => e.stopPropagation()}
+        onkeydown={(e) => e.stopPropagation()}
+      >
         <div class="modal-header">
-          <h3>Preview: {previewingTemplate.name}</h3>
+          <div class="modal-header-info">
+            <h3>Preview: {previewingTemplate.name}</h3>
+            <span
+              class="modal-cat-badge"
+              style="background:{catColor(previewingTemplate.category)}22;color:{catColor(previewingTemplate.category)}"
+            >{getTemplateCategoryLabel(previewingTemplate.category)}</span>
+          </div>
           <button
             type="button"
             class="close-btn"
-            onclick={() => (previewingTemplate = null)}>✕</button
-          >
+            aria-label="Tutup"
+            onclick={() => (previewingTemplate = null)}
+          >✕</button>
         </div>
         <div class="modal-body demo-body">
           <div class="iframe-container">
@@ -323,26 +406,21 @@
               title="Template Demo"
               src="/demo/{previewingTemplate.id}"
               frameborder="0"
+              loading="lazy"
             ></iframe>
           </div>
           <div class="preview-details">
             <p>{previewingTemplate.description}</p>
             <div class="color-chips">
-              <span
-                class="chip"
-                style="background: {previewingTemplate.primary_color}"
-                title="Primary"
-              ></span>
-              <span
-                class="chip"
-                style="background: {previewingTemplate.secondary_color}"
-                title="Secondary"
-              ></span>
-              <span
-                class="chip"
-                style="background: {previewingTemplate.accent_color}"
-                title="Accent"
-              ></span>
+              {#if previewingTemplate.primary_color}
+                <span class="chip" style="background:{previewingTemplate.primary_color}" title="Primary"></span>
+              {/if}
+              {#if previewingTemplate.secondary_color}
+                <span class="chip" style="background:{previewingTemplate.secondary_color}" title="Secondary"></span>
+              {/if}
+              {#if previewingTemplate.accent_color}
+                <span class="chip" style="background:{previewingTemplate.accent_color}" title="Accent"></span>
+              {/if}
             </div>
           </div>
         </div>
@@ -351,11 +429,12 @@
             type="button"
             class="btn btn-primary w-full"
             onclick={() => {
-              selectedTemplate = previewingTemplate.id;
+              selectedTemplateId = previewingTemplate!.id;
+              selectedTemplate = previewingTemplate!.id;
               previewingTemplate = null;
             }}
           >
-            Pilih Template Ini
+            ✓ Pilih Template Ini
           </button>
         </div>
       </div>
@@ -974,49 +1053,140 @@
     margin-bottom: 1rem;
   }
 
+  /* ─── Template grid: 4 col desktop ───────────────────────────────── */
   .template-selector {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.5rem;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.1rem;
   }
+  @media (max-width: 1280px) {
+    .template-selector {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  @media (max-width: 900px) {
+    .template-selector {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 560px) {
+    .template-selector {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* ─── Template card ────────────────────────────────────────────────── */
   .template-option {
     cursor: pointer;
     border: 1px solid var(--dash-border);
-    border-radius: 16px;
+    border-radius: 14px;
     overflow: hidden;
-    transition: all 0.3s;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     background: var(--dash-surface);
     display: flex;
     flex-direction: column;
   }
+  .template-option:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(0,0,0,0.25);
+    border-color: rgba(108,99,255,0.35);
+  }
   .template-option.selected {
     border-color: var(--dash-accent);
-    box-shadow: 0 0 0 4px rgba(108, 99, 255, 0.15);
+    box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.2), 0 8px 24px rgba(0,0,0,0.2);
   }
   .template-option input {
     display: none;
   }
+
+  /* ─── Thumbnail area ───────────────────────────────────────────────── */
   .template-thumb-container {
     height: 200px;
     position: relative;
     overflow: hidden;
+    background: #0d0d1a;
+    flex-shrink: 0;
   }
-  .template-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.5s;
+
+  /* Skeleton */
+  .thumb-skeleton {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    background: #0d0d1a;
   }
-  .template-option:hover .template-img {
-    transform: scale(1.05);
+  .thumb-shimmer {
+    width: 55%;
+    height: 7px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #1a1a2e 25%, #2a2a4a 50%, #1a1a2e 75%);
+    background-size: 200% 100%;
+    animation: thumbShimmer 1.4s infinite;
   }
-  .selected-overlay {
+  @keyframes thumbShimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+  .thumb-skeleton-label {
+    font-size: 0.65rem;
+    color: var(--dash-text-muted);
+  }
+
+  /* Iframe */
+  .thumb-iframe {
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(108, 99, 255, 0.3);
+    width: 1280px;
+    height: 900px;
+    border: none;
+    transform-origin: top left;
+    transform: scale(0.235);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  @media (max-width: 1280px) {
+    .thumb-iframe { transform: scale(0.27); }
+  }
+  @media (max-width: 900px) {
+    .thumb-iframe { transform: scale(0.38); }
+  }
+  @media (max-width: 560px) {
+    .thumb-iframe { transform: scale(0.55); }
+  }
+  .thumb-iframe.thumb-loaded {
+    opacity: 1;
+  }
+  .thumb-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+  }
+  .thumb-cat-badge {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    z-index: 4;
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    padding: 0.18rem 0.5rem;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    backdrop-filter: blur(6px);
+  }
+  .selected-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    background: rgba(108, 99, 255, 0.25);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1024,67 +1194,100 @@
   .check-icon {
     background: var(--dash-accent);
     color: white;
-    width: 40px;
-    height: 40px;
+    width: 38px;
+    height: 38px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
-    font-weight: bold;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    font-size: 1.3rem;
+    font-weight: 700;
+    box-shadow: 0 4px 12px rgba(108,99,255,0.4);
   }
+
+  /* ─── Card info area ───────────────────────────────────────────────── */
   .template-opt-info {
-    padding: 1.25rem;
+    padding: 0.9rem 1rem 1rem;
     flex: 1;
+    display: flex;
+    flex-direction: column;
   }
   .info-top {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 0.5rem;
+    margin-bottom: 0.4rem;
     gap: 0.5rem;
   }
   .info-top-text {
     min-width: 0;
     flex: 1;
   }
-  .template-category-pill {
-    display: inline-block;
-    font-size: 0.65rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--dash-accent);
-    background: rgba(108, 99, 255, 0.12);
-    border: 1px solid rgba(108, 99, 255, 0.25);
-    padding: 0.2rem 0.45rem;
-    border-radius: 6px;
+  .template-opt-info h4 {
+    font-family: var(--font-serif);
+    font-size: 0.95rem;
+    margin: 0 0 0.3rem;
+    color: var(--dash-text);
+    line-height: 1.3;
+  }
+  .tmpl-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem;
     margin-bottom: 0.35rem;
   }
-  .template-opt-info h4 {
-    font-size: 1.1rem;
-    margin: 0;
+  .tmpl-chip {
+    font-size: 0.62rem;
+    color: var(--dash-text-muted);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--dash-border);
+    padding: 0.15rem 0.4rem;
+    border-radius: 999px;
+    text-transform: capitalize;
+  }
+  .tmpl-desc {
+    font-size: 0.78rem;
+    color: var(--dash-text-muted);
+    line-height: 1.45;
+    margin: 0 0 0.6rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    flex: 1;
+  }
+  .tmpl-swatches {
+    display: flex;
+    gap: 0.3rem;
+    margin-top: auto;
+  }
+  .tmpl-swatch {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    flex-shrink: 0;
   }
   .btn-preview {
-    background: rgba(255, 255, 255, 0.05);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    background: rgba(255,255,255,0.05);
     border: 1px solid var(--dash-border);
     color: var(--dash-text-muted);
-    font-size: 0.75rem;
-    padding: 0.35rem 0.6rem;
+    font-size: 0.72rem;
+    padding: 0.3rem 0.55rem;
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s;
+    flex-shrink: 0;
+    white-space: nowrap;
   }
   .btn-preview:hover {
-    background: var(--dash-bg);
-    color: var(--dash-text);
-  }
-  .template-opt-info p {
-    font-size: 0.85rem;
-    color: var(--dash-text-muted);
-    line-height: 1.5;
-    margin: 0;
+    background: var(--dash-accent-light);
+    border-color: var(--dash-accent);
+    color: var(--dash-accent);
   }
 
   /* Modal Styles */
@@ -1094,78 +1297,114 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    backdrop-filter: blur(5px);
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(6px);
     z-index: 1000;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 2rem;
+    padding: 1.5rem;
   }
   .preview-modal {
     background: var(--dash-surface);
+    border: 1px solid var(--dash-border);
     width: 100%;
-    max-width: 600px;
+    max-width: 520px;
     border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    animation: modalFadeIn 0.3s ease;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+    animation: modalFadeIn 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
   }
   @keyframes modalFadeIn {
-    from {
-      opacity: 0;
-      transform: scale(0.95);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
+    from { opacity: 0; transform: scale(0.95) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
   }
   .modal-header {
-    padding: 1.5rem;
+    padding: 1.1rem 1.4rem;
     border-bottom: 1px solid var(--dash-border);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-shrink: 0;
+  }
+  .modal-header-info {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-width: 0;
   }
   .modal-header h3 {
     margin: 0;
     font-family: var(--font-serif);
+    font-size: 1rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .modal-cat-badge {
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    padding: 0.18rem 0.5rem;
+    border-radius: 999px;
+    flex-shrink: 0;
   }
   .close-btn {
-    background: none;
-    border: none;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--dash-border);
     color: var(--dash-text-muted);
-    font-size: 1.25rem;
+    font-size: 1rem;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.2s;
+  }
+  .close-btn:hover {
+    background: rgba(231,76,60,0.15);
+    border-color: rgba(231,76,60,0.3);
+    color: var(--color-danger);
   }
   .modal-body.demo-body {
     padding: 0;
-    background: #f1f5f9;
+    background: #0a0a14;
     display: flex;
     flex-direction: column;
     align-items: center;
+    overflow-y: auto;
+    flex: 1;
   }
   .iframe-container {
     width: 100%;
-    max-width: 414px;
-    height: 750px;
-    margin: 1.5rem auto;
-    border-radius: 40px;
+    max-width: 390px;
+    height: 680px;
+    margin: 1.25rem auto;
+    border-radius: 36px;
     overflow: hidden;
-    border: 10px solid #1e293b;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    border: 8px solid #1e293b;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
     background: white;
+    flex-shrink: 0;
   }
   .iframe-container iframe {
     width: 100%;
     height: 100%;
+    border: none;
   }
   .preview-details {
-    padding: 1.5rem;
+    padding: 1rem 1.4rem 1.25rem;
     background: var(--dash-surface);
     width: 100%;
     border-top: 1px solid var(--dash-border);
+    flex-shrink: 0;
   }
   .color-chips {
     display: flex;

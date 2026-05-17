@@ -126,6 +126,47 @@ export async function getUserAnalytics(userId: string): Promise<{
 	return { totalViews, totalUniqueVisitors, totalRsvp };
 }
 
+export async function getRecentWishesByUser(userId: string, limit: number = 5): Promise<{
+	id: string;
+	invitation_id: string;
+	guest_name: string;
+	message: string;
+	is_attending: string;
+	created_at: string;
+	bride_name: string;
+	groom_name: string;
+	slug: string;
+}[]> {
+	const db = await getDb();
+	const safeLimit = Math.max(1, Math.min(50, Math.floor(limit)));
+	const [rows] = await db.execute(
+		`SELECT w.id, w.invitation_id, w.guest_name, w.message, w.is_attending, w.created_at,
+		        i.bride_name, i.groom_name, i.slug
+		 FROM wishes w
+		 JOIN invitations i ON w.invitation_id = i.id
+		 WHERE i.user_id = ?
+		 ORDER BY w.created_at DESC
+		 LIMIT ${safeLimit}`,
+		[userId]
+	);
+	return rows as any[];
+}
+
+export async function getDailyViewsByUser(userId: string, days: number = 14): Promise<{ date: string; count: number }[]> {
+	const db = await getDb();
+	const safeDays = Math.max(1, Math.min(90, Math.floor(days)));
+	const [rows] = await db.execute(
+		`SELECT DATE(pv.created_at) as date, COUNT(*) as count
+		 FROM page_views pv
+		 JOIN invitations i ON pv.invitation_id = i.id
+		 WHERE i.user_id = ? AND pv.created_at >= DATE_SUB(NOW(), INTERVAL ${safeDays} DAY)
+		 GROUP BY DATE(pv.created_at)
+		 ORDER BY date ASC`,
+		[userId]
+	);
+	return rows as { date: string; count: number }[];
+}
+
 export async function ensurePageViewsTable(): Promise<void> {
 	const db = await getDb();
 	try {

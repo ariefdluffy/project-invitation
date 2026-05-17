@@ -1,7 +1,7 @@
 <script lang="ts">
   import SimpleEventLayout from "./SimpleEventLayout.svelte";
 
-  let { invitation, template, wishes = [], guestName = "", form } = $props();
+  let { invitation, template, wishes = [], guestName = "", form = undefined } = $props();
 
   const layout = {
     titleFallback: "Tasyakuran Aqiqah",

@@ -41,7 +41,7 @@ export const actions: Actions = {
 		const templates = await getTemplates();
 		const template = templates.find((t) => t.id === templateId);
 		const category = (template?.category || 'wedding').toLowerCase();
-		const isSingleNameCategory = ['birthday', 'gathering', 'formal', 'corporate', 'general'].includes(category);
+		const isSingleNameCategory = ['formal', 'corporate', 'general'].includes(category);
 		if (isSingleNameCategory && !brideName) brideName = groomName;
 
 		if (!templateId || !groomName || !slug || (!brideName && !isSingleNameCategory)) {

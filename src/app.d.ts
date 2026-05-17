@@ -7,6 +7,7 @@ declare global {
 		// interface Error {}
 		interface Locals {
 			user: User | null;
+			cspNonce: string;
 		}
 		// interface PageData {}
 		// interface PageState {}

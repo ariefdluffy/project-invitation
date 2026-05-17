@@ -265,7 +265,7 @@
 							style="display: none;"
 						/>
 						<div class="template-preview">
-							<img src={template.thumbnail} alt={template.name} />
+							<img src={template.thumbnail} alt={template.name} loading="lazy" decoding="async" />
 							{#if selectedTemplate === template.id}
 								<div class="selected-badge">✓ Terpilih</div>
 							{/if}

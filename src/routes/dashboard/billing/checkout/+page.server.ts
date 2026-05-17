@@ -79,13 +79,12 @@ export const load: PageServerLoad = async ({ locals, url }) => {
 
 			// Activate user access
 			if (orderType === 'premium') {
-				const durationDays = 30;
-				const expiresAt = new Date();
-				expiresAt.setDate(expiresAt.getDate() + durationDays);
-				await updateUserAccess(locals.user.id, 'premium', expiresAt);
+				const subEndsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+					.toISOString().slice(0, 19).replace('T', ' ');
+				await updateUserAccess(locals.user.id, 1, 'paid', 5, 100, subEndsAt);
 			} else if (orderType === 'addon') {
 				const guestQuantity = parseInt((await getSetting('addon_guest_quantity')) || '50');
-				await updateUserAccess(locals.user.id, 'addon', null, guestQuantity);
+				await updateUserAccess(locals.user.id, 1, 'paid', undefined, guestQuantity);
 			}
 
 			// Increment promo code usage

@@ -3,7 +3,11 @@ import type { RequestHandler } from './$types';
 import { updateUserAccess, addGuestLimitToUser, addTemplateQuotaToUser } from '$lib/server/users';
 import { getSetting } from '$lib/server/settings';
 import { findPaymentTransactionByOrderId, updatePaymentTransactionStatus } from '$lib/server/payment-transactions';
+import { createLogger } from '$lib/server/logger';
+import { enqueueWebhook } from '$lib/server/webhook-queue';
 import crypto from 'crypto';
+
+const log = createLogger('MidtransNotify');
 
 // Midtrans IP ranges for production and sandbox
 // Source: https://docs.midtrans.com/en/other/security
@@ -50,9 +54,7 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 	// Optional IP whitelist: verify request comes from Midtrans IP range
 	const clientIp = getClientAddress();
 	if (!MIDTRANS_IPS.has(clientIp)) {
-		// In production, you may want to block non-Midtrans IPs.
-		// For now, log a warning but still process (signature verification is the primary check)
-		console.warn(`[Midtrans] Notification from unknown IP: ${clientIp}. Signature verification will still apply.`);
+		log.warn('Notification from unknown IP', { ip: clientIp });
 	}
 
 	const body = await request.json();
@@ -63,7 +65,7 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 	const signature = crypto.createHash('sha512').update(signatureStr).digest('hex');
 
 	if (signature !== body.signature_key) {
-		console.error('[Midtrans] Invalid Signature Key');
+		log.error('Invalid signature key', { orderId: body.order_id });
 		return json({ status: 'error', message: 'Invalid Signature' }, { status: 403 });
 	}
 
@@ -71,63 +73,95 @@ export const POST: RequestHandler = async ({ request, getClientAddress }) => {
 	const transactionStatus = body.transaction_status;
 	const fraudStatus = body.fraud_status;
 
-	console.log(`[Midtrans] Notification received: ${orderId} - Status: ${transactionStatus}`);
+	log.info('Notification received', { orderId, transactionStatus });
 
-	// Payment Success Logic
-	if (
-		transactionStatus === 'capture' ||
-		transactionStatus === 'settlement' ||
-		transactionStatus === 'success'
-	) {
-		if (fraudStatus === 'challenge') {
-			console.log(`[Midtrans] Payment Challenge for ${orderId}`);
-			return json({ status: 'ok' });
-		}
-
-		// Lookup transaction dari DB
-		const paymentTx = await findPaymentTransactionByOrderId(orderId);
-		if (paymentTx) {
-			const userId = paymentTx.user_id;
-					console.log(`[Midtrans] Payment Success for order ${orderId} - User: ${userId}`);
-
-					if (paymentTx.type === 'premium') {
-						console.log(`[Midtrans] Activating Premium for User: ${userId}`);
-						await updateUserAccess(userId, 1, 'paid', 5, 100);
-					} else if (paymentTx.type === 'addon') {
-						const addonQuantity = parseInt(await getSetting('addon_guest_quantity') || '50');
-						console.log(`[Midtrans] Adding ${addonQuantity} guests for User: ${userId}`);
-						await addGuestLimitToUser(userId, addonQuantity);
-					} else if (paymentTx.type === 'template-expansion') {
-						const templateQuantity = parseInt(await getSetting('template_expansion_quantity') || '5');
-						console.log(`[Midtrans] Adding ${templateQuantity} templates for User: ${userId}`);
-						await addTemplateQuotaToUser(userId, templateQuantity);
-					}
-
-			// Update transaction status
-			await updatePaymentTransactionStatus(orderId, 'success');
-		} else {
-			/* Legacy: PREMIUM__uuid__ts atau ADDON__uuid__ts */
-			const parts = orderId.split('__');
-			if (parts.length < 2) {
-				console.warn(`[Midtrans] Cannot parse legacy order_id: ${orderId}`);
-				return json({ status: 'ok' });
-			}
-			const legacyType = parts[0];
-			const userId = parts[1];
-			if (legacyType === 'PREMIUM') {
-				console.log(`[Midtrans] Activating Premium (legacy order_id) for User: ${userId}`);
-				await updateUserAccess(userId, 1, 'paid', 5, 100);
-					} else if (legacyType === 'ADDON') {
-						const addonQuantity = parseInt(await getSetting('addon_guest_quantity') || '50');
-						console.log(`[Midtrans] Adding ${addonQuantity} guests (legacy) for User: ${userId}`);
-						await addGuestLimitToUser(userId, addonQuantity);
-					} else if (legacyType === 'TEMPLATE_EXPANSION') {
-						const templateQuantity = parseInt(await getSetting('template_expansion_quantity') || '5');
-						console.log(`[Midtrans] Adding ${templateQuantity} templates (legacy) for User: ${userId}`);
-						await addTemplateQuotaToUser(userId, templateQuantity);
-					}
-		}
+	// Wrap downstream side-effects in try/catch — if any DB write fails, the
+	// webhook is enqueued for retry so we never lose a payment notification.
+	try {
+		await processPaymentNotification(orderId, transactionStatus, fraudStatus);
+	} catch (err) {
+		const msg = err instanceof Error ? err.message : String(err);
+		log.error('Processing failed, enqueueing for retry', { orderId, error: msg });
+		await enqueueWebhook({
+			direction: 'inbound',
+			source: 'midtrans',
+			payload: body,
+			delaySeconds: 30
+		});
+		// Still ack 200 so Midtrans does not retry uncontrolled — our queue handles retry.
 	}
 
 	return json({ status: 'ok' });
 };
+
+async function processPaymentNotification(
+	orderId: string,
+	transactionStatus: string,
+	fraudStatus: string
+): Promise<void> {
+	if (
+		transactionStatus !== 'capture' &&
+		transactionStatus !== 'settlement' &&
+		transactionStatus !== 'success'
+	) {
+		return;
+	}
+
+	if (fraudStatus === 'challenge') {
+		log.info('Payment challenge', { orderId });
+		return;
+	}
+
+	// Idempotency: skip if this transaction is already marked success.
+	const paymentTx = await findPaymentTransactionByOrderId(orderId);
+	if (paymentTx?.status === 'success') {
+		log.info('Already processed, skipping', { orderId });
+		return;
+	}
+
+	if (paymentTx) {
+		const userId = paymentTx.user_id;
+		log.info('Payment success', { orderId, userId });
+
+		if (paymentTx.type === 'premium') {
+			log.info('Activating premium', { userId });
+			const subEndsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+				.toISOString().slice(0, 19).replace('T', ' ');
+			await updateUserAccess(userId, 1, 'paid', 5, 100, subEndsAt);
+		} else if (paymentTx.type === 'addon') {
+			const addonQuantity = parseInt((await getSetting('addon_guest_quantity')) || '50');
+			log.info('Adding guest limit', { userId, addonQuantity });
+			await addGuestLimitToUser(userId, addonQuantity);
+		} else if (paymentTx.type === 'template-expansion') {
+			const templateQuantity = parseInt((await getSetting('template_expansion_quantity')) || '5');
+			log.info('Adding template quota', { userId, templateQuantity });
+			await addTemplateQuotaToUser(userId, templateQuantity);
+		}
+
+		await updatePaymentTransactionStatus(orderId, 'success');
+		return;
+	}
+
+	/* Legacy: PREMIUM__uuid__ts atau ADDON__uuid__ts */
+	const parts = orderId.split('__');
+	if (parts.length < 2) {
+		log.warn('Cannot parse legacy order_id', { orderId });
+		return;
+	}
+	const legacyType = parts[0];
+	const userId = parts[1];
+	if (legacyType === 'PREMIUM') {
+		log.info('Activating premium (legacy)', { userId });
+		const subEndsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+			.toISOString().slice(0, 19).replace('T', ' ');
+		await updateUserAccess(userId, 1, 'paid', 5, 100, subEndsAt);
+	} else if (legacyType === 'ADDON') {
+		const addonQuantity = parseInt((await getSetting('addon_guest_quantity')) || '50');
+		log.info('Adding guest limit (legacy)', { userId, addonQuantity });
+		await addGuestLimitToUser(userId, addonQuantity);
+	} else if (legacyType === 'TEMPLATE_EXPANSION') {
+		const templateQuantity = parseInt((await getSetting('template_expansion_quantity')) || '5');
+		log.info('Adding template quota (legacy)', { userId, templateQuantity });
+		await addTemplateQuotaToUser(userId, templateQuantity);
+	}
+}

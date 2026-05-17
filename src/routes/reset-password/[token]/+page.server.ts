@@ -1,6 +1,7 @@
 import type { Actions, PageServerLoad } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 import { verifyResetToken, updateUserPassword, clearResetToken } from '$lib/server/users';
+import { validatePassword } from '$lib/server/password-policy';
 
 export const load: PageServerLoad = async ({ params, url }) => {
 	const token = params.token;
@@ -30,8 +31,9 @@ export const actions: Actions = {
 			return fail(400, { error: 'Semua field harus diisi.' });
 		}
 
-		if (password.length < 6) {
-			return fail(400, { error: 'Password minimal 6 karakter.' });
+		const pwCheck = validatePassword(password);
+		if (!pwCheck.valid) {
+			return fail(400, { error: pwCheck.error || 'Password tidak valid' });
 		}
 
 		if (password !== confirmPassword) {

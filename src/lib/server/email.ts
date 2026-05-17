@@ -1,5 +1,8 @@
 import nodemailer from 'nodemailer';
 import { env } from '$env/dynamic/private';
+import { createLogger } from './logger';
+
+const log = createLogger('Email');
 
 let transporter: nodemailer.Transporter | null = null;
 
@@ -33,7 +36,7 @@ function getTransporter(): nodemailer.Transporter | null {
 	const config = getConfig();
 	if (!config) return null;
 
-	console.log('[Email] Config:', { host: config.host, port: config.port, user: config.user });
+	log.debug('Config loaded', { host: config.host, port: config.port });
 
 	transporter = nodemailer.createTransport({
 		host: config.host,
@@ -49,9 +52,9 @@ function getTransporter(): nodemailer.Transporter | null {
 	// Verify connection on startup
 	transporter.verify((err, success) => {
 		if (err) {
-			console.error('[Email] Transport verify failed:', err.message);
+			log.error('Transport verify failed', { message: err.message });
 		} else {
-			console.log('[Email] Transport ready:', success);
+			log.info('Transport ready', { success });
 		}
 	});
 
@@ -112,7 +115,7 @@ export async function sendEmail(options: EmailOptions): Promise<{ sent: boolean;
 	const config = getConfig();
 
 	if (!t || !config) {
-		console.warn('[Email] SMTP not configured. Skipping email send.');
+		log.warn('SMTP not configured. Skipping email send.');
 		return { sent: false, error: 'SMTP_NOT_CONFIGURED' };
 	}
 
@@ -124,11 +127,11 @@ export async function sendEmail(options: EmailOptions): Promise<{ sent: boolean;
 			text: options.text || '',
 			html: options.html || ''
 		});
-		console.log(`[Email] Sent to ${options.to}: "${options.subject}"`);
+		log.info('Sent', { to: options.to, subject: options.subject });
 		return { sent: true };
 	} catch (err) {
 		const msg = err instanceof Error ? err.message : String(err);
-		console.error(`[Email] Failed to send to ${options.to}:`, msg);
+		log.error('Failed to send', { to: options.to, error: msg });
 		return { sent: false, error: msg };
 	}
 }

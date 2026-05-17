@@ -1,7 +1,14 @@
-import type { Actions, PageServerLoad } from './$types';
+import type { Actions } from './$types';
 import { fail, redirect } from "@sveltejs/kit";
-import { authenticateUser, getUserByEmail } from "$lib/server/users";
-import { createSessionToken } from "$lib/server/session";
+import { authenticateUser, getUserByEmail, regenerateEmailVerifyToken } from "$lib/server/users";
+import { buildSessionToken, SESSION_TTL_SECONDS } from "$lib/server/session";
+import { createSession } from "$lib/server/session-store";
+import {
+	getLockState,
+	recordFailedLogin,
+	clearFailedLogins,
+	LOCKOUT_THRESHOLD,
+} from "$lib/server/account-lockout";
 import { logAudit } from "$lib/server/audit-log";
 import { TURNSTILE_SECRET_KEY } from "$env/static/private";
 import { dev } from "$app/environment";
@@ -9,6 +16,9 @@ import { checkRateLimit, ipKey } from "$lib/server/rate-limiter";
 import { getClientIp } from "$lib/server/utils";
 import { sendVerificationEmail } from "$lib/server/email";
 import { getSetting } from "$lib/server/settings";
+import { createLogger } from "$lib/server/logger";
+
+const log = createLogger("Login");
 
 export const actions: Actions = {
 	login: async ({ request, cookies }) => {
@@ -74,19 +84,49 @@ export const actions: Actions = {
 			});
 		}
 
+		// Account-level lockout (independent of IP)
+		const lockState = await getLockState(email);
+		if (lockState.locked) {
+			const minutes = lockState.until
+				? Math.max(1, Math.ceil((lockState.until.getTime() - Date.now()) / 60000))
+				: 15;
+			return fail(423, {
+				error: `Akun terkunci karena terlalu banyak percobaan login gagal. Coba lagi dalam ${minutes} menit.`,
+				email,
+			});
+		}
+
 		// Authenticate user
 		const user = await authenticateUser(email, password);
 		if (!user) {
+			const lockResult = await recordFailedLogin(email);
+			if (lockResult.locked) {
+				log.warn("Account locked", { email });
+				return fail(423, {
+					error: `Akun terkunci setelah ${LOCKOUT_THRESHOLD} percobaan login gagal. Coba lagi dalam 15 menit.`,
+					email,
+				});
+			}
 			return fail(401, { error: "Email atau password salah", email });
 		}
+
+		// Successful authentication: reset failed-attempt counter
+		await clearFailedLogins(user.id);
 
 		// Check if email is verified (skip for admins)
 		if (user.email_verified !== 1 && user.role !== 'admin') {
 			return fail(403, { error: "Email belum diverifikasi. Silakan cek inbox email Anda.", email });
 		}
 
-		// Set signed session cookie
-		const sessionToken = createSessionToken(user.id);
+		// Create server-side session row + signed cookie referencing it
+		const userAgent = request.headers.get("user-agent") || "";
+		const sid = await createSession({
+			userId: user.id,
+			userAgent,
+			ip: clientIp,
+			ttlSeconds: SESSION_TTL_SECONDS,
+		});
+		const sessionToken = buildSessionToken(sid, user.id);
 
 		// Audit log
 		logAudit({
@@ -201,31 +241,37 @@ export const actions: Actions = {
 			});
 		}
 
-		// Find user by email
+		// Always return success generic to prevent email enumeration
 		const user = await getUserByEmail(email);
-		if (!user) {
-			return fail(404, { error: "Email tidak ditemukan.", email });
+
+		// Only send email if user exists AND not yet verified
+		if (user && user.email_verified !== 1) {
+			// Generate fresh raw token (DB stores only its hash)
+			try {
+				const rawToken = await regenerateEmailVerifyToken(user.id);
+				const origin = process.env.ORIGIN || 'https://temuin.web.id';
+				const verifyLink = `${origin}/verify-email/${rawToken}`;
+				const appName = await getSetting("app_name") || "Wedding.id";
+
+				sendVerificationEmail(email, verifyLink, appName).catch((err) => {
+					console.error('[ResendVerification] Failed to send email:', err);
+				});
+
+				logAudit({
+					action: "user.resend_verification",
+					userId: user.id,
+					email: user.email,
+					ip: clientIp,
+				});
+			} catch (err) {
+				console.error('[ResendVerification] Failed to regenerate token:', err);
+			}
 		}
 
-		// Check if already verified
-		if (user.email_verified === 1) {
-			return fail(400, { error: "Email sudah terverifikasi. Silakan login.", email });
-		}
-
-		// Send verification email
-		const origin = process.env.ORIGIN || 'https://temuin.web.id';
-		const verifyLink = `${origin}/verify-email/${user.email_verify_token}`;
-		const appName = await getSetting("app_name") || "Wedding.id";
-
-		sendVerificationEmail(email, verifyLink, appName);
-
-		logAudit({
-			action: "user.resend_verification",
-			userId: user.id,
-			email: user.email,
-			ip: clientIp,
-		});
-
-		return { success: true, email };
+		return {
+			success: true,
+			email,
+			message: "Jika email terdaftar dan belum diverifikasi, link verifikasi akan dikirim.",
+		};
 	},
 };

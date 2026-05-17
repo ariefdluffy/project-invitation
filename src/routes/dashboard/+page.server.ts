@@ -1,15 +1,31 @@
 import type { PageServerLoad } from './$types';
 import { getGuestStatsByUser } from '$lib/server/invitations';
-import { getUserAnalytics } from '$lib/server/analytics';
+import {
+	getUserAnalytics,
+	getRecentWishesByUser,
+	getDailyViewsByUser
+} from '$lib/server/analytics';
+import { hasActiveAccess, isUserInTrial } from '$lib/server/users';
 
 export const load: PageServerLoad = async ({ locals }) => {
-	const [guestStats, userStats] = await Promise.all([
-		getGuestStatsByUser(locals.user!.id),
-		getUserAnalytics(locals.user!.id)
+	const user = locals.user!;
+
+	const [guestStats, userStats, recentWishes, dailyViews] = await Promise.all([
+		getGuestStatsByUser(user.id),
+		getUserAnalytics(user.id),
+		getRecentWishesByUser(user.id, 5),
+		getDailyViewsByUser(user.id, 14)
 	]);
+
+	const trialActive = isUserInTrial(user);
+	const accountActive = hasActiveAccess(user);
 
 	return {
 		guestStats,
-		userStats
+		userStats,
+		recentWishes,
+		dailyViews,
+		trialActive,
+		accountActive
 	};
 };

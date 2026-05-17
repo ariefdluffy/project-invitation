@@ -1,5 +1,6 @@
 import type { LayoutServerLoad } from './$types';
 import { getSetting } from '$lib/server/settings';
+import { ensureCsrfCookie } from '$lib/server/csrf';
 
 export const load: LayoutServerLoad = async ({ locals, cookies }) => {
 	const appName = await getSetting('app_name');
@@ -15,10 +16,16 @@ export const load: LayoutServerLoad = async ({ locals, cookies }) => {
 		}
 		cookies.delete('flash', { path: '/' });
 	}
+
+	// Ensure CSRF token cookie is set for every visitor (anon or authenticated).
+	// The token is bound to the current `session` cookie when present.
+	const csrfToken = ensureCsrfCookie(cookies, cookies.get('session'));
+
 	return {
 		user: locals.user || null,
 		appName: appName || 'Wedding.id',
 		turnstileSiteKey: turnstileSiteKey || '1x00000000000000000000AA',
-		flash
+		flash,
+		csrfToken
 	};
 };

@@ -1,3 +1,4 @@
+import type { LayoutServerLoad } from './$types';
 import { getInvitationsByUser } from '$lib/server/invitations';
 import { getSetting } from '$lib/server/settings';
 import { hasActiveAccess } from '$lib/server/users';

@@ -12,7 +12,18 @@
 
   let { data }: { data: PageData } = $props();
 
-  const invitation = $derived(data.invitation);
+  // Detect if loaded inside an iframe (for thumbnail mode)
+  let isInIframe = $state(false);
+  $effect(() => {
+    try {
+      isInIframe = window.self !== window.top;
+    } catch {
+      isInIframe = true;
+    }
+  });
+
+  // Cast invitation to a typed helper so TS is happy with string operations
+  const invitation = $derived(data.invitation as Record<string, string>);
   const template = $derived(data.template);
   const wishes = $derived(data.wishes);
   const guestName = $derived(data.guestName);
@@ -33,9 +44,9 @@
 
   $effect(() => {
     if (invitation.background_image) {
-      const urls = invitation.background_image
+      const urls = (invitation.background_image as string)
         .split(/[\n,]+/)
-        .map((u) => u.trim())
+        .map((u: string) => u.trim())
         .filter(Boolean);
       if (urls.length > 0) {
         const randomIndex = Math.floor(Math.random() * urls.length);
@@ -78,14 +89,14 @@
   });
 
   // Parse JSON fields
-  const bankAccounts = $derived(JSON.parse(invitation.bank_accounts || "[]"));
+  const bankAccounts = $derived(JSON.parse((invitation.bank_accounts as string) || "[]"));
   const dressColors = $derived(
-    JSON.parse(invitation.dress_code_colors || "[]"),
+    JSON.parse((invitation.dress_code_colors as string) || "[]"),
   );
   const galleryImages = $derived(
-    (invitation.gallery_images || "")
+    ((invitation.gallery_images as string) || "")
       .split(/[\n,]+/)
-      .map((u) => u.trim())
+      .map((u: string) => u.trim())
       .filter(Boolean),
   );
 
@@ -109,10 +120,10 @@
   }
 
   const cssVars = $derived(`
-		--p-col: ${template.primary_color};
-		--s-col: ${template.secondary_color};
-		--a-col: ${template.accent_color};
-		--f-fam: '${template.font_family}', serif;
+		--p-col: ${template.primary_color ?? '#8B6914'};
+		--s-col: ${template.secondary_color ?? '#D4A574'};
+		--a-col: ${template.accent_color ?? '#FDF6E3'};
+		--f-fam: '${template.font_family ?? 'Playfair Display'}', serif;
 	`);
 </script>
 
@@ -127,26 +138,28 @@
   </style>
 </svelte:head>
 
+{#if !isInIframe}
 <div class="preview-mode-badge">PREVIEW MODE: {template.name}</div>
 <a href="/admin/templates" class="back-to-admin">← Kembali ke Admin</a>
+{/if}
 
 {#if isTema31}
-  <Tema31InspiredWedding {invitation} {template} {wishes} {guestName} />
+  <Tema31InspiredWedding {invitation} {template} {wishes} {guestName} form={null} />
 {:else if isThreeDMotion}
-  <ThreeDMotionWedding {invitation} {template} {wishes} {guestName} />
+  <ThreeDMotionWedding {invitation} {template} {wishes} {guestName} form={null} />
 {:else if !isWedding}
   {#if category === "khitan"}
-    <KhitanLayout {invitation} {template} {wishes} {guestName} />
+    <KhitanLayout {invitation} {template} {wishes} {guestName} form={null} />
   {:else if category === "aqiqah"}
-    <AqiqahLayout {invitation} {template} {wishes} {guestName} />
+    <AqiqahLayout {invitation} {template} {wishes} {guestName} form={null} />
   {:else if category === "birthday"}
-    <BirthdayLayout {invitation} {template} {wishes} {guestName} />
+    <BirthdayLayout {invitation} {template} {wishes} {guestName} form={null} />
   {:else if category === "gathering"}
-    <GatheringLayout {invitation} {template} {wishes} {guestName} />
+    <GatheringLayout {invitation} {template} {wishes} {guestName} form={null} />
   {:else if category === "formal" || category === "corporate"}
-    <FormalLayout {invitation} {template} {wishes} {guestName} />
+    <FormalLayout {invitation} {template} {wishes} {guestName} form={null} />
   {:else}
-    <GeneralLayout {invitation} {template} {wishes} {guestName} />
+    <GeneralLayout {invitation} {template} {wishes} {guestName} form={null} />
   {/if}
 {:else}
   <div

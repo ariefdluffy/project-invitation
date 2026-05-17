@@ -1,7 +1,7 @@
 import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from '@sveltejs/kit';
 import { updateUserPassword, getUserById } from '$lib/server/users';
-import bcryptjs from 'bcryptjs';
+import { validatePassword, verifyPassword } from '$lib/server/password-policy';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	if (!locals.user) {
@@ -32,8 +32,9 @@ export const actions: Actions = {
 			return fail(400, { error: 'Semua kolom wajib diisi.' });
 		}
 
-		if (newPassword.length < 6) {
-			return fail(400, { error: 'Password baru minimal 6 karakter.' });
+		const pwCheck = validatePassword(newPassword);
+		if (!pwCheck.valid) {
+			return fail(400, { error: pwCheck.error || 'Password tidak valid.' });
 		}
 
 		if (newPassword !== confirmPassword) {
@@ -46,7 +47,7 @@ export const actions: Actions = {
 			return fail(404, { error: 'Pengguna tidak ditemukan atau password tidak ada.' });
 		}
 
-		if (!bcryptjs.compareSync(currentPassword, userWithPassword.password)) {
+		if (!verifyPassword(currentPassword, userWithPassword.password)) {
 			return fail(400, { error: 'Password saat ini salah.' });
 		}
 

@@ -9,6 +9,7 @@ import { checkRateLimit, ipKey } from "$lib/server/rate-limiter";
 import { sendWelcomeEmail, sendVerificationEmail } from "$lib/server/email";
 import { getSetting } from "$lib/server/settings";
 import { getClientIp } from "$lib/server/utils";
+import { validatePassword } from "$lib/server/password-policy";
 
 export const actions: Actions = {
 	default: async ({ request, cookies }) => {
@@ -23,9 +24,10 @@ export const actions: Actions = {
 			return fail(400, { error: "Semua field harus diisi", username, email });
 		}
 
-		if (password.length < 6) {
+		const pwCheck = validatePassword(password);
+		if (!pwCheck.valid) {
 			return fail(400, {
-				error: "Password minimal 6 karakter",
+				error: pwCheck.error || "Password tidak valid",
 				username,
 				email,
 			});
@@ -107,8 +109,7 @@ export const actions: Actions = {
 				.then(async (appName) => {
 					const appN = appName || "Wedding.id";
 					const origin = process.env.ORIGIN || 'https://temuin.web.id';
-					const verifyLink = `${origin}/verify-email/${user.email_verify_token}`;
-					console.log('[Register] Verification link:', verifyLink);
+					const verifyLink = `${origin}/verify-email/${user.rawVerifyToken}`;
 					sendVerificationEmail(email, verifyLink, appN);
 				})
 				.catch(() => {});

@@ -1,4 +1,7 @@
 import { getSetting } from './settings';
+import { createLogger } from './logger';
+
+const log = createLogger('Midtrans');
 
 export async function createMidtransTransaction(params: {
 	orderId: string;
@@ -10,9 +13,8 @@ export async function createMidtransTransaction(params: {
 	const serverKey = rawKey?.trim() || '';
 	const isProduction = (await getSetting('midtrans_is_production')) === '1';
 
-	console.log('[Midtrans] Debug info:', {
+	log.debug('createTransaction', {
 		hasServerKey: !!serverKey,
-		serverKeyLength: serverKey.length,
 		isProduction,
 		orderId: params.orderId
 	});
@@ -21,8 +23,8 @@ export async function createMidtransTransaction(params: {
 		throw new Error('Midtrans Server Key is not configured in Admin Settings.');
 	}
 
-	const baseUrl = isProduction 
-		? 'https://app.midtrans.com/snap/v1/transactions' 
+	const baseUrl = isProduction
+		? 'https://app.midtrans.com/snap/v1/transactions'
 		: 'https://app.sandbox.midtrans.com/snap/v1/transactions';
 
 	const authHeader = Buffer.from(serverKey + ':').toString('base64');
@@ -57,7 +59,7 @@ export async function createMidtransTransaction(params: {
 		body: JSON.stringify(body)
 	});
 
-	console.log('[Midtrans] Response status:', response.status, response.statusText);
+	log.debug('responseStatus', { status: response.status, statusText: response.statusText });
 
 	if (!response.ok) {
 		const text = await response.text();

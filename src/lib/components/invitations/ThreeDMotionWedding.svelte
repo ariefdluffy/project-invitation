@@ -2,7 +2,7 @@
   import { enhance } from "$app/forms";
   import { toast } from "$lib/toast.svelte";
 
-  let { invitation, template, wishes = [], guestName = "", form } = $props();
+  let { invitation, template, wishes = [], guestName = "", form = undefined } = $props();
 
   let isOpened = $state(false);
   let isPlaying = $state(false);

@@ -16,6 +16,20 @@
 					: "unpaid",
 	);
 
+	// Hitung sisa hari langganan untuk user paid
+	const subscriptionDaysLeft = $derived(() => {
+		if (!data.subscriptionEndsAt) return null;
+		const diff = new Date(data.subscriptionEndsAt).getTime() - Date.now();
+		if (diff <= 0) return 0;
+		return Math.ceil(diff / (1000 * 60 * 60 * 24));
+	});
+
+	const subscriptionEndFormatted = $derived(
+		data.subscriptionEndsAt
+			? new Date(data.subscriptionEndsAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })
+			: null
+	);
+
 	onMount(() => {
 		// Check for success parameter in URL
 		const urlParams = new URLSearchParams(window.location.search);
@@ -66,9 +80,39 @@
 		{#if data.user?.payment_status === "paid"}
 			<div class="access-panel access-panel--success">
 				<p class="access-panel__text">
-					Selamat! Pembayaran Anda telah terverifikasi. Akun Anda memiliki akses penuh untuk membuat
-					dan mengelola undangan sesuai paket Anda.
+					Pembayaran terverifikasi. Akun Anda memiliki akses penuh.
 				</p>
+				{#if subscriptionEndFormatted}
+					<div class="subscription-info">
+						<div class="subscription-info__row">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+								<rect x="3" y="4" width="18" height="18" rx="2" />
+								<path d="M16 2v4M8 2v4M3 10h18" />
+							</svg>
+							<span class="subscription-info__label">Berakhir</span>
+							<span class="subscription-info__value">{subscriptionEndFormatted}</span>
+						</div>
+						<div class="subscription-info__row">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+								<circle cx="12" cy="12" r="10" />
+								<path d="M12 6v6l4 2" />
+							</svg>
+							<span class="subscription-info__label">Sisa masa aktif</span>
+							<span class="subscription-info__value subscription-info__value--days">
+								{#if subscriptionDaysLeft() !== null}
+									{@const days = subscriptionDaysLeft() ?? 0}
+									{#if days <= 0}
+										<span class="days-badge days-badge--expired">Kedaluwarsa</span>
+									{:else if days <= 7}
+										<span class="days-badge days-badge--warning">{days} hari lagi</span>
+									{:else}
+										<span class="days-badge days-badge--ok">{days} hari lagi</span>
+									{/if}
+								{/if}
+							</span>
+						</div>
+					</div>
+				{/if}
 				<div class="status-actions">
 					<a href="/dashboard/create" class="status-cta status-cta--primary">
 						<svg class="status-cta__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -293,7 +337,7 @@
 	.billing-grid {
 		display: grid;
 		grid-template-columns: 1fr;
-		gap: 2rem;
+		gap: 1.25rem;
 		max-width: 1200px;
 	}
 
@@ -320,7 +364,7 @@
 		flex-direction: column;
 		align-items: stretch;
 		text-align: left;
-		padding: 2rem 1.75rem 2.25rem;
+		padding: 1.25rem 1.25rem 1.5rem;
 		position: relative;
 		overflow: hidden;
 	}
@@ -340,36 +384,36 @@
 
 	.status-card__header {
 		text-align: center;
-		margin-bottom: 1.5rem;
+		margin-bottom: 1rem;
 	}
 
 	.status-card__eyebrow {
-		font-size: 0.7rem;
+		font-size: 0.65rem;
 		font-weight: 700;
 		text-transform: uppercase;
 		letter-spacing: 0.12em;
 		color: var(--dash-text-muted);
-		margin-bottom: 0.35rem;
+		margin-bottom: 0.25rem;
 	}
 
 	.status-card__title {
-		font-size: 1.35rem;
+		font-size: 1.1rem;
 		font-weight: 700;
 		color: var(--dash-text);
 		letter-spacing: -0.02em;
-		margin-bottom: 1rem;
+		margin-bottom: 0.75rem;
 	}
 
 	.status-badge {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		gap: 0.5rem;
+		gap: 0.4rem;
 		margin: 0 auto;
-		padding: 0.45rem 1.1rem;
+		padding: 0.35rem 0.9rem;
 		border-radius: var(--radius-full);
 		font-weight: 600;
-		font-size: 0.8rem;
+		font-size: 0.72rem;
 		letter-spacing: 0.02em;
 		border: 1px solid transparent;
 	}
@@ -424,15 +468,15 @@
 	}
 
 	.access-panel {
-		padding: 1.25rem 1.2rem;
+		padding: 0.9rem 1rem;
 		border-radius: var(--radius-md);
-		font-size: 0.92rem;
-		line-height: 1.65;
+		font-size: 0.82rem;
+		line-height: 1.6;
 		border: 1px solid transparent;
 	}
 
 	.access-panel__text {
-		margin: 0 0 1.25rem;
+		margin: 0 0 0.75rem;
 		color: var(--dash-text-muted);
 	}
 
@@ -1094,216 +1138,282 @@
 	}
 
 	.manual-notice {
-			text-align: center;
-			font-size: 0.8rem;
-			color: #64748b;
-			margin-top: 1rem;
-		}
+		text-align: center;
+		font-size: 0.8rem;
+		color: #64748b;
+		margin-top: 1rem;
+	}
 
-		.trial-banner {
-			grid-column: 1 / -1;
-			background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(251, 191, 36, 0.04));
-			border: 1px solid rgba(251, 191, 36, 0.25);
-			border-radius: 14px;
-			overflow: hidden;
-		}
+	.trial-banner {
+		grid-column: 1 / -1;
+		background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(251, 191, 36, 0.04));
+		border: 1px solid rgba(251, 191, 36, 0.25);
+		border-radius: 14px;
+		overflow: hidden;
+	}
 
-		.trial-banner__inner {
-			display: flex;
-			align-items: center;
-			gap: 1rem;
-			padding: 1rem 1.5rem;
-		}
+	.trial-banner__inner {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		padding: 1rem 1.5rem;
+	}
 
-		.trial-banner__icon {
-			font-size: 1.8rem;
-			flex-shrink: 0;
-		}
+	.trial-banner__icon {
+		font-size: 1.8rem;
+		flex-shrink: 0;
+	}
 
-		.trial-banner__text {
-			display: flex;
-			flex-direction: column;
-			gap: 0.15rem;
-		}
+	.trial-banner__text {
+		display: flex;
+		flex-direction: column;
+		gap: 0.15rem;
+	}
 
-		.trial-banner__title {
-			font-weight: 700;
-			font-size: 0.95rem;
-			color: #fde68a;
-		}
+	.trial-banner__title {
+		font-weight: 700;
+		font-size: 0.95rem;
+		color: #fde68a;
+	}
 
-		.trial-banner__sub {
-			font-size: 0.82rem;
-			color: var(--dash-text-muted);
-		}
+	.trial-banner__sub {
+		font-size: 0.82rem;
+		color: var(--dash-text-muted);
+	}
 
+	.packages-grid {
+		grid-column: 1 / -1;
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 1.5rem;
+	}
+
+	@media (min-width: 768px) {
 		.packages-grid {
-			grid-column: 1 / -1;
-			display: grid;
-			grid-template-columns: 1fr;
-			gap: 1.5rem;
+			grid-template-columns: repeat(3, 1fr);
 		}
+	}
 
-		@media (min-width: 768px) {
-			.packages-grid {
-				grid-template-columns: repeat(3, 1fr);
-			}
-		}
+	.package-card {
+		padding: 2.5rem 2rem 2rem;
+		border: 1px solid rgba(108, 99, 255, 0.15);
+		background: linear-gradient(135deg, #fff5f8 0%, #fff0f5 100%);
+		box-shadow: 0 4px 20px rgba(236, 72, 153, 0.1);
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		border-radius: 16px;
+		position: relative;
+		text-align: center;
+	}
 
-		.package-card {
-			padding: 2.5rem 2rem 2rem;
-			border: 1px solid rgba(108, 99, 255, 0.15);
-			background: linear-gradient(135deg, #fff5f8 0%, #fff0f5 100%);
-			box-shadow: 0 4px 20px rgba(236, 72, 153, 0.1);
-			display: flex;
-			flex-direction: column;
-			overflow: hidden;
-			border-radius: 16px;
-			position: relative;
-			text-align: center;
-		}
+	.package-card::before {
+		content: "";
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 4px;
+		background: linear-gradient(135deg, #ec4899 0%, #f472b6 50%, #fb7185 100%);
+	}
 
-		.package-card::before {
-			content: "";
-			position: absolute;
-			top: 0;
-			left: 0;
-			right: 0;
-			height: 4px;
-			background: linear-gradient(135deg, #ec4899 0%, #f472b6 50%, #fb7185 100%);
-		}
+	.package-card__content {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+		flex: 1;
+	}
 
-		.package-card__content {
-			display: flex;
-			flex-direction: column;
-			gap: 1.5rem;
-			flex: 1;
-		}
+	.package-card--popular {
+		background: linear-gradient(135deg, #fff5f8 0%, #fff0f5 100%);
+		box-shadow: 0 12px 40px rgba(236, 72, 153, 0.15);
+	}
 
-		.package-card--popular {
-			background: linear-gradient(135deg, #fff5f8 0%, #fff0f5 100%);
-			box-shadow: 0 12px 40px rgba(236, 72, 153, 0.15);
-		}
+	.package-card__header {
+		text-align: center;
+	}
 
-		.package-card__header {
-			text-align: center;
-		}
+	.package-icon-wrapper {
+		width: 64px;
+		height: 64px;
+		margin: 0 auto 1rem;
+		background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
+		border-radius: 16px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-shadow: 0 8px 24px rgba(236, 72, 153, 0.3);
+	}
 
-		.package-icon-wrapper {
-			width: 64px;
-			height: 64px;
-			margin: 0 auto 1rem;
-			background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
-			border-radius: 16px;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			box-shadow: 0 8px 24px rgba(236, 72, 153, 0.3);
-		}
+	.package-icon {
+		font-size: 2rem;
+		margin: 0;
+	}
 
-		.package-icon {
-			font-size: 2rem;
-			margin: 0;
-		}
+	.package-card .plan-name {
+		font-size: 0.75rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: #ec4899;
+		margin-bottom: 0.5rem;
+		display: block;
+	}
 
-		.package-card .plan-name {
-			font-size: 0.75rem;
-			font-weight: 700;
-			text-transform: uppercase;
-			letter-spacing: 0.08em;
-			color: #ec4899;
-			margin-bottom: 0.5rem;
-			display: block;
-		}
+	.package-card .price {
+		justify-content: center;
+		margin-top: 0.75rem;
+	}
 
-		.package-card .price {
-			justify-content: center;
-			margin-top: 0.75rem;
-		}
+	.package-card .currency {
+		font-size: 1.2rem;
+		color: #1e293b;
+	}
 
-		.package-card .currency {
-			font-size: 1.2rem;
-			color: #1e293b;
-		}
+	.package-card .amount {
+		font-size: 2.5rem;
+		color: #1e293b;
+		font-weight: 800;
+		letter-spacing: -1px;
+	}
 
-		.package-card .amount {
-			font-size: 2.5rem;
-			color: #1e293b;
-			font-weight: 800;
-			letter-spacing: -1px;
-		}
+	.package-card .period {
+		font-size: 0.9rem;
+		color: #64748b;
+	}
 
-		.package-card .period {
-			font-size: 0.9rem;
-			color: #64748b;
-		}
+	.package-desc {
+		color: #475569;
+		font-size: 0.95rem;
+		line-height: 1.6;
+		text-align: center;
+		margin: 0;
+	}
 
-		.package-desc {
-			color: #475569;
-			font-size: 0.95rem;
-			line-height: 1.6;
-			text-align: center;
-			margin: 0;
-		}
+	.package-features {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
 
-		.package-features {
-			list-style: none;
-			padding: 0;
-			margin: 0;
-			display: flex;
-			flex-direction: column;
-			gap: 0.75rem;
-		}
+	.package-features li {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		font-size: 0.88rem;
+		color: #475569;
+		text-align: left;
+	}
 
-		.package-features li {
-			display: flex;
-			align-items: center;
-			gap: 0.75rem;
-			font-size: 0.88rem;
-			color: #475569;
-			text-align: left;
-		}
+	.feat-check {
+		width: 20px;
+		height: 20px;
+		border-radius: 50%;
+		background: rgba(236, 72, 153, 0.12);
+		color: #ec4899;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 0.7rem;
+		font-weight: 700;
+		flex-shrink: 0;
+	}
 
-		.feat-check {
-			width: 20px;
-			height: 20px;
-			border-radius: 50%;
-			background: rgba(236, 72, 153, 0.12);
-			color: #ec4899;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			font-size: 0.7rem;
-			font-weight: 700;
-			flex-shrink: 0;
-		}
+	.package-footer {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		gap: 0.5rem;
+		margin-top: 1rem;
+		padding-top: 1rem;
+		border-top: 1px solid rgba(236, 72, 153, 0.1);
+		font-size: 0.8rem;
+		color: #64748b;
+		font-weight: 500;
+	}
 
-		.package-footer {
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			gap: 0.5rem;
-			margin-top: 1rem;
-			padding-top: 1rem;
-			border-top: 1px solid rgba(236, 72, 153, 0.1);
-			font-size: 0.8rem;
-			color: #64748b;
-			font-weight: 500;
-		}
+	.package-card__action {
+		margin-top: auto;
+	}
 
+	.package-card .btn-primary {
+		background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
+		box-shadow: 0 4px 14px rgba(236, 72, 153, 0.35);
+	}
 
+	.package-card .btn-primary:hover {
+		box-shadow: 0 6px 20px rgba(236, 72, 153, 0.45);
+		transform: translateY(-1px);
+	}
 
-		.package-card__action {
-			margin-top: auto;
-		}
+	/* ── Subscription info block ── */
+	.subscription-info {
+		display: flex;
+		flex-direction: column;
+		gap: 0.45rem;
+		margin-bottom: 0.85rem;
+		padding: 0.65rem 0.85rem;
+		background: rgba(34, 197, 94, 0.07);
+		border: 1px solid rgba(34, 197, 94, 0.18);
+		border-radius: var(--radius-md);
+	}
 
-		.package-card .btn-primary {
-			background: linear-gradient(135deg, #ec4899 0%, #f472b6 100%);
-			box-shadow: 0 4px 14px rgba(236, 72, 153, 0.35);
-		}
+	.subscription-info__row {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.78rem;
+	}
 
-		.package-card .btn-primary:hover {
-			box-shadow: 0 6px 20px rgba(236, 72, 153, 0.45);
-			transform: translateY(-1px);
-		}
-	</style>
+	.subscription-info__row svg {
+		width: 13px;
+		height: 13px;
+		color: #86efac;
+		flex-shrink: 0;
+		opacity: 0.85;
+	}
+
+	.subscription-info__label {
+		color: var(--dash-text-muted);
+		flex-shrink: 0;
+	}
+
+	.subscription-info__value {
+		margin-left: auto;
+		color: #86efac;
+		font-weight: 600;
+		font-size: 0.78rem;
+	}
+
+	/* ── Days badge ── */
+	.days-badge {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.15rem 0.55rem;
+		border-radius: var(--radius-full);
+		font-size: 0.72rem;
+		font-weight: 700;
+		letter-spacing: 0.01em;
+	}
+
+	.days-badge--ok {
+		background: rgba(34, 197, 94, 0.15);
+		color: #86efac;
+		border: 1px solid rgba(34, 197, 94, 0.25);
+	}
+
+	.days-badge--warning {
+		background: rgba(251, 191, 36, 0.12);
+		color: #fcd34d;
+		border: 1px solid rgba(251, 191, 36, 0.28);
+	}
+
+	.days-badge--expired {
+		background: rgba(248, 113, 113, 0.12);
+		color: #fca5a5;
+		border: 1px solid rgba(248, 113, 113, 0.25);
+	}
+</style>

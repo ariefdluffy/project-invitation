@@ -20,6 +20,7 @@ export const load: PageServerLoad = async ({ locals }) => {
 		addonGuestQuantity: addonGuestQuantity || '50',
 		trialActive,
 		trialEndsAt: user?.trial_ends_at || null,
+		subscriptionEndsAt: user?.subscription_ends_at || null,
 		hasActiveAccess: user ? hasActiveAccess(user) : false
 	};
 };
