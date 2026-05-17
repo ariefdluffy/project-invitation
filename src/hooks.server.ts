@@ -99,9 +99,7 @@ export const handle: Handle = async ({ event, resolve }) => {
     }
   }
 
-  const response = await resolve(event, {
-    transformPageChunk: ({ html }) => html.replace(/%csp_nonce%/g, nonce),
-  });
+  const response = await resolve(event);
 
   // CSP Strategy:
   // - PRODUCTION: svelte.config.js (csp.mode:'nonce') handles the full CSP header.
