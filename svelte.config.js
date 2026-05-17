@@ -7,20 +7,73 @@ const config = {
 		runes: ({ filename }) => (filename.split(/[/\\]/).includes('node_modules') ? undefined : true)
 	},
 	kit: {
-		// adapter-auto only supports some environments, see https://svelte.dev/docs/kit/adapter-auto for a list.
-		// If your environment is not supported, or you settled on a specific environment, switch out the adapter.
-		// See https://svelte.dev/docs/kit/adapters for more information about adapters.
 		adapter: adapter(),
 
-		// Add CSP nonce to all SvelteKit-generated <script> and <style> tags so they
-		// satisfy our nonce-based Content-Security-Policy in production.
-		// Use `nonce` mode so SvelteKit reads `event.locals.cspNonce` from
-		// hooks.server.ts and adds it to all generated <script> and <style> tags.
-		// This guarantees the nonce in the CSP header matches the nonce on tags.
+		// Full production CSP managed by SvelteKit with mode:'nonce'.
+		// SvelteKit reads event.locals.cspNonce (set in hooks.server.ts) and
+		// automatically adds that nonce to every <script> and <style> tag it
+		// generates, then sets the Content-Security-Policy header using these
+		// directives + the nonce.
+		//
+		// hooks.server.ts only overrides the CSP header in DEV mode (to allow
+		// Vite HMR unsafe-inline/unsafe-eval). In production it leaves the
+		// SvelteKit-generated header untouched.
 		csp: {
 			mode: 'nonce',
 			directives: {
-				'script-src': ['self']
+				'default-src': ['self'],
+				'script-src': [
+					'self',
+					'strict-dynamic',
+					'https://challenges.cloudflare.com',
+					'https://*.cloudflare.com',
+					'https://static.cloudflareinsights.com'
+				],
+				'script-src-elem': [
+					'self',
+					'strict-dynamic',
+					'https://challenges.cloudflare.com',
+					'https://*.cloudflare.com',
+					'https://static.cloudflareinsights.com'
+				],
+				'style-src': [
+					'self',
+					'unsafe-inline',
+					'https://fonts.googleapis.com'
+				],
+				'style-src-elem': [
+					'self',
+					'unsafe-inline',
+					'https://fonts.googleapis.com',
+					'https://fonts.gstatic.com'
+				],
+				'img-src': [
+					'self',
+					'data:',
+					'blob:',
+					'https://challenges.cloudflare.com',
+					'https://*.cloudflare.com',
+					'https://images.unsplash.com',
+					'https://*.unsplash.com',
+					'https://res.cloudinary.com',
+					'https://*.cloudinary.com'
+				],
+				'font-src': ['self', 'data:', 'https://fonts.gstatic.com'],
+				'connect-src': [
+					'self',
+					'https://challenges.cloudflare.com',
+					'https://*.cloudflare.com',
+					'https://static.cloudflareinsights.com'
+				],
+				'frame-src': [
+					'self',
+					'https://challenges.cloudflare.com',
+					'https://*.cloudflare.com'
+				],
+				'object-src': ['none'],
+				'base-uri': ['self'],
+				'form-action': ['self'],
+				'frame-ancestors': ['self']
 			}
 		}
 	}

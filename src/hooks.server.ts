@@ -117,12 +117,24 @@ export const handle: Handle = async ({ event, resolve }) => {
     ? `'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://*.cloudflare.com https://static.cloudflareinsights.com`
     : `'self' 'nonce-${nonce}' 'strict-dynamic' https://challenges.cloudflare.com https://*.cloudflare.com https://static.cloudflareinsights.com`;
 
+  // style-src-attr: governs inline style="..." attributes — must use 'unsafe-inline'
+  // because attributes cannot carry a nonce. 'unsafe-inline' is only ignored when a
+  // nonce/hash is present in the *same* directive, so keeping it in a separate
+  // style-src-attr directive is safe.
+  //
+  // style-src-elem: governs <style> blocks — SvelteKit (csp.mode:'nonce') stamps every
+  // generated <style> tag with the per-request nonce, so we can require it here.
+  //
+  // style-src: fallback for browsers that don't support the granular directives.
+  // Must NOT include a nonce (which would cause 'unsafe-inline' to be ignored).
   const csp = [
     "default-src 'self'",
     `script-src ${scriptSrc}`,
     `script-src-elem ${scriptSrc}`,
-    `style-src 'self' 'unsafe-inline' 'nonce-${nonce}' https://fonts.googleapis.com`,
-    `style-src-elem 'self' 'unsafe-inline' 'nonce-${nonce}' https://fonts.googleapis.com https://fonts.gstatic.com`,
+    `script-src-attr 'none'`,
+    `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
+    `style-src-attr 'unsafe-inline'`,
+    `style-src-elem 'self' 'nonce-${nonce}' https://fonts.googleapis.com https://fonts.gstatic.com`,
     "img-src 'self' data: blob: https://challenges.cloudflare.com https://*.cloudflare.com https://images.unsplash.com https://*.unsplash.com https://res.cloudinary.com https://*.cloudinary.com",
     "font-src 'self' data: https://fonts.gstatic.com",
     "connect-src 'self' https://challenges.cloudflare.com https://*.cloudflare.com https://static.cloudflareinsights.com",
