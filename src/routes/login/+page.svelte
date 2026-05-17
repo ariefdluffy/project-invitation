@@ -6,6 +6,8 @@
 	let turnstileReady = $state(false);
 	let resetSuccess = $state(false);
 	let registeredSuccess = $state(false);
+	let showResendForm = $state(false);
+	let resendSubmitted = $state(false);
 
 	$effect(() => {
 		const params = new URLSearchParams(window.location.search);
@@ -16,6 +18,21 @@
 		if (params.get('registered') === '1') {
 			registeredSuccess = true;
 			window.history.replaceState({}, '', '/login');
+		}
+	});
+
+	// Auto-show resend form when unverified error occurs
+	$effect(() => {
+		if (form?.error === "Email belum diverifikasi. Silakan cek inbox email Anda.") {
+			showResendForm = true;
+		}
+	});
+
+	// Reset form visibility after successful resend
+	$effect(() => {
+		if (form?.success) {
+			showResendForm = true; // Keep showing resend form with success message
+			resendSubmitted = true;
 		}
 	});
 
@@ -31,16 +48,30 @@
 		}
 	}
 
+	function renderResendTurnstile() {
+		if (typeof (window as any).turnstile !== 'undefined') {
+			(window as any).turnstile.render('#cf-turnstile-resend', {
+				sitekey: data.turnstileSiteKey,
+				theme: 'light',
+				callback: () => { turnstileReady = true; },
+				expired: () => { turnstileReady = false; },
+				error: () => { turnstileReady = false; }
+			});
+		}
+	}
+
 	onMount(() => {
-		// Wait for turnstile script to load
 		const checkTurnstile = setInterval(() => {
 			if (typeof (window as any).turnstile !== 'undefined') {
 				clearInterval(checkTurnstile);
-				renderTurnstile();
+				if (showResendForm) {
+					renderResendTurnstile();
+				} else {
+					renderTurnstile();
+				}
 			}
 		}, 100);
 
-		// Timeout after 10 seconds
 		setTimeout(() => clearInterval(checkTurnstile), 10000);
 	});
 </script>
@@ -63,30 +94,62 @@
 			<div class="info-message">Akun berhasil dibuat. Silakan cek email untuk verifikasi sebelum login.</div>
 		{/if}
 
-		{#if form?.error}
-			<div class="error-message">{form.error}</div>
+		{#if form?.success}
+			<div class="success-message">Email verifikasi berhasil dikirim ulang. Silakan cek inbox email Anda.</div>
 		{/if}
 
-		{#if !turnstileReady}
-			<div class="info-message">Loading security challenge...</div>
+		{#if !showResendForm}
+			{#if form?.error}
+				<div class="error-message">{form.error}</div>
+			{/if}
+
+			{#if !turnstileReady}
+				<div class="info-message">Loading security challenge...</div>
+			{/if}
+
+			<form method="POST" action="?/login">
+				<div class="form-group">
+					<label for="email">Email</label>
+					<input type="email" id="email" name="email" class="form-control" placeholder="masukkan email" value={form?.email ?? ''} required />
+				</div>
+				<div class="form-group">
+					<label for="password">Password</label>
+					<input type="password" id="password" name="password" class="form-control" placeholder="masukkan password" required />
+				</div>
+				<div class="form-group turnstile-container">
+					<div id="cf-turnstile-login" class="cf-turnstile"></div>
+				</div>
+				<button type="submit" class="btn btn-primary" disabled={!turnstileReady}>
+					{turnstileReady ? 'Masuk' : 'Memuat...'}
+				</button>
+			</form>
+		{:else}
+			{#if !resendSubmitted}
+				<div class="resend-info">
+					<p>Silakan masukkan email Anda untuk menerima ulang link verifikasi.</p>
+				</div>
+			{/if}
+
+			<form method="POST" action="?/resendVerification">
+				<div class="form-group">
+					<label for="resend-email">Email</label>
+					<input type="email" id="resend-email" name="email" class="form-control" placeholder="masukkan email" value={form?.email ?? ''} required />
+				</div>
+				<div class="form-group turnstile-container">
+					<div id="cf-turnstile-resend" class="cf-turnstile"></div>
+				</div>
+				<button type="submit" class="btn btn-secondary" disabled={!turnstileReady}>
+					{turnstileReady ? 'Kirim Ulang Email Verifikasi' : 'Memuat...'}
+				</button>
+			</form>
+
+			{#if !resendSubmitted}
+				<button type="button" class="btn btn-link" onclick={() => { showResendForm = false; }}>
+					← Kembali ke login
+				</button>
+			{/if}
 		{/if}
 
-		<form method="POST">
-			<div class="form-group">
-				<label for="email">Email</label>
-				<input type="email" id="email" name="email" class="form-control" placeholder="masukkan email" value={form?.email ?? ''} required />
-			</div>
-			<div class="form-group">
-				<label for="password">Password</label>
-				<input type="password" id="password" name="password" class="form-control" placeholder="masukkan password" required />
-			</div>
-			<div class="form-group turnstile-container">
-				<div id="cf-turnstile-login" class="cf-turnstile"></div>
-			</div>
-			<button type="submit" class="btn btn-primary" disabled={!turnstileReady}>
-				{turnstileReady ? 'Masuk' : 'Memuat...'}
-			</button>
-		</form>
 		<div class="auth-links">
 			<a href="/forgot-password">Lupa password?</a>
 		</div>
@@ -115,5 +178,42 @@
 		margin-bottom: 16px;
 		font-size: 14px;
 		text-align: center;
+	}
+	.error-message {
+		background: #ffebee;
+		color: #c62828;
+		padding: 12px 16px;
+		border-radius: 8px;
+		margin-bottom: 16px;
+		font-size: 14px;
+		text-align: center;
+	}
+	.resend-info {
+		background: #e3f2fd;
+		color: #1565c0;
+		padding: 12px 16px;
+		border-radius: 8px;
+		margin-bottom: 16px;
+		font-size: 14px;
+		text-align: center;
+	}
+	.btn-link {
+		background: none;
+		border: none;
+		color: #1976d2;
+		cursor: pointer;
+		padding: 12px 0;
+		font-size: 14px;
+		text-decoration: underline;
+	}
+	.btn-link:hover {
+		color: #0d47a1;
+	}
+	.btn-secondary {
+		background: #1976d2;
+		color: white;
+	}
+	.btn-secondary:hover {
+		background: #1565c0;
 	}
 </style>

@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 export type AuditAction =
 	| 'user.login'
 	| 'user.register'
+	| 'user.resend_verification'
 	| 'user.logout'
 	| 'user.password_reset'
 	| 'user.password_change'
