@@ -68,7 +68,9 @@ const config = {
 				'frame-src': [
 					'self',
 					'https://challenges.cloudflare.com',
-					'https://*.cloudflare.com'
+					'https://*.cloudflare.com',
+					'https://maps.google.com',
+					'https://www.google.com'
 				],
 				'object-src': ['none'],
 				'base-uri': ['self'],

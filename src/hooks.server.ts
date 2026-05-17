@@ -118,7 +118,7 @@ export const handle: Handle = async ({ event, resolve }) => {
       "img-src 'self' data: blob: https://challenges.cloudflare.com https://*.cloudflare.com https://images.unsplash.com https://*.unsplash.com https://res.cloudinary.com https://*.cloudinary.com",
       "font-src 'self' data: https://fonts.gstatic.com",
       "connect-src 'self' ws: wss: https://challenges.cloudflare.com https://*.cloudflare.com https://static.cloudflareinsights.com",
-      "frame-src 'self' https://challenges.cloudflare.com https://*.cloudflare.com",
+      "frame-src 'self' https://challenges.cloudflare.com https://*.cloudflare.com https://maps.google.com https://www.google.com",
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",
