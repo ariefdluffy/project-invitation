@@ -3,18 +3,20 @@ import { fail } from '@sveltejs/kit';
 import { getUserByEmail, saveResetToken } from '$lib/server/users';
 import { sendPasswordResetEmail } from '$lib/server/email';
 import { getSetting } from '$lib/server/settings';
-import { TURNSTILE_SECRET_KEY } from '$env/static/private';
+import { env } from '$env/dynamic/private';
 import { checkRateLimit, ipKey } from '$lib/server/rate-limiter';
+import { getClientIp } from '$lib/server/utils';
 import crypto from 'crypto';
 import bcryptjs from 'bcryptjs';
 
 export const load: PageServerLoad = async () => {
 	const turnstileSiteKey = process.env.PUBLIC_TURNSTILE_SITE_KEY || '1x00000000000000000000AA';
-	return { turnstileSiteKey };
+	const disableTurnstile = process.env.DISABLE_TURNSTILE === 'true';
+	return { turnstileSiteKey, disableTurnstile };
 };
 
 export const actions: Actions = {
-	default: async ({ request, getClientAddress, url }) => {
+	default: async ({ request, url }) => {
 		const formData = await request.formData();
 		const email = formData.get('email') as string;
 		const turnstileResponse = formData.get('cf-turnstile-response') as string;
@@ -24,7 +26,7 @@ export const actions: Actions = {
 		}
 
 		// Rate limiting by IP
-		const clientIp = getClientAddress();
+		const clientIp = getClientIp({ request } as any);
 		const rlResult = checkRateLimit(ipKey(clientIp, 'forgot-password'), {
 			maxRequests: 3,
 			windowMs: 60 * 1000
@@ -36,29 +38,34 @@ export const actions: Actions = {
 		}
 
 		// Verify Turnstile
-		if (!turnstileResponse) {
-			return fail(400, { error: 'Security challenge (Turnstile) is required' });
-		}
-
-		try {
-			const params = new URLSearchParams({
-				secret: TURNSTILE_SECRET_KEY,
-				response: turnstileResponse
-			});
-			const verifyRes = await fetch(
-				'https://challenges.cloudflare.com/turnstile/v0/siteverify',
-				{
-					method: 'POST',
-					headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-					body: params.toString()
-				}
-			);
-			const verifyData = await verifyRes.json();
-			if (!verifyData.success) {
-				return fail(400, { error: 'Gagal memverifikasi bahwa Anda bukan robot.' });
+		// Skip Turnstile in dev mode
+		if (env.DISABLE_TURNSTILE === 'true') {
+			console.log('[ForgotPassword] Turnstile skipped (DISABLE_TURNSTILE=true)');
+		} else {
+			if (!turnstileResponse) {
+				return fail(400, { error: 'Security challenge (Turnstile) is required' });
 			}
-		} catch {
-			return fail(500, { error: 'Terjadi kesalahan sistem verifikasi.' });
+
+			try {
+				const params = new URLSearchParams({
+					secret: env.TURNSTILE_SECRET_KEY,
+					response: turnstileResponse
+				});
+				const verifyRes = await fetch(
+					'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+					{
+						method: 'POST',
+						headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+						body: params.toString()
+					}
+				);
+				const verifyData = await verifyRes.json();
+				if (!verifyData.success) {
+					return fail(400, { error: 'Gagal memverifikasi bahwa Anda bukan robot.' });
+				}
+			} catch {
+				return fail(500, { error: 'Terjadi kesalahan sistem verifikasi.' });
+			}
 		}
 
 		// Always return success to prevent email enumeration

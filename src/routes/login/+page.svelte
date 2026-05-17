@@ -3,63 +3,40 @@
 	import { onMount } from 'svelte';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
+	let turnstileReady = $state(false);
 	let resetSuccess = $state(false);
 
 	$effect(() => {
-		if (typeof window !== 'undefined') {
-			const params = new URLSearchParams(window.location.search);
-			if (params.get('reset') === 'success') {
-				resetSuccess = true;
-				// Clean URL
-				window.history.replaceState({}, '', '/login');
-			}
+		const params = new URLSearchParams(window.location.search);
+		if (params.get('reset') === 'success') {
+			resetSuccess = true;
+			window.history.replaceState({}, '', '/login');
 		}
 	});
-	let turnstileWidgetId: string | null = $state(null);
-	let turnstileReady = $state(false);
-	let turnstileToken = $state('');
+
+	function renderTurnstile() {
+		if (typeof (window as any).turnstile !== 'undefined') {
+			(window as any).turnstile.render('#cf-turnstile-login', {
+				sitekey: data.turnstileSiteKey,
+				theme: 'light',
+				callback: () => { turnstileReady = true; },
+				expired: () => { turnstileReady = false; },
+				error: () => { turnstileReady = false; }
+			});
+		}
+	}
 
 	onMount(() => {
-		const container = document.getElementById('cf-turnstile-login');
-		if (!container) return;
-
-		const renderTurnstile = () => {
+		// Wait for turnstile script to load
+		const checkTurnstile = setInterval(() => {
 			if (typeof (window as any).turnstile !== 'undefined') {
-				turnstileWidgetId = (window as any).turnstile.render('#cf-turnstile-login', {
-					sitekey: data.turnstileSiteKey,
-					theme: 'light',
-					callback: (token: string) => {
-						turnstileToken = token;
-						turnstileReady = true;
-					},
-					expired: () => {
-						turnstileToken = '';
-						turnstileReady = false;
-					},
-					error: () => {
-						turnstileToken = '';
-						turnstileReady = false;
-					}
-				}) as string;
+				clearInterval(checkTurnstile);
+				renderTurnstile();
 			}
-		};
+		}, 100);
 
-		if (document.querySelector('script[src*="turnstile"]')) {
-			renderTurnstile();
-		} else {
-			const script = document.createElement('script');
-			script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
-			script.async = true;
-			script.defer = true;
-			script.onload = renderTurnstile;
-			document.head.appendChild(script);
-		}
-
-		return () => {
-			if (turnstileWidgetId && typeof (window as any).turnstile !== 'undefined') {
-				(window as any).turnstile.remove(turnstileWidgetId);
-			}
-		};
+		// Timeout after 10 seconds
+		setTimeout(() => clearInterval(checkTurnstile), 10000);
 	});
 </script>
 

@@ -3,41 +3,31 @@
 	import { onMount } from 'svelte';
 
 	let { data, form }: { data: PageData; form: ActionData } = $props();
-	let turnstileWidgetId: string | null = $state(null);
 	let turnstileReady = $state(false);
 
-	onMount(() => {
-		const container = document.getElementById('cf-turnstile-register');
-		if (!container) return;
-
-		const renderTurnstile = () => {
-			if (typeof (window as any).turnstile !== 'undefined') {
-				turnstileWidgetId = (window as any).turnstile.render('#cf-turnstile-register', {
-					sitekey: data.turnstileSiteKey,
-					theme: 'light',
-					callback: () => { turnstileReady = true; },
-					expired: () => { turnstileReady = false; },
-					error: () => { turnstileReady = false; }
-				}) as string;
-			}
-		};
-
-		if (document.querySelector('script[src*="turnstile"]')) {
-			renderTurnstile();
-		} else {
-			const script = document.createElement('script');
-			script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
-			script.async = true;
-			script.defer = true;
-			script.onload = renderTurnstile;
-			document.head.appendChild(script);
+	function renderTurnstile() {
+		if (typeof (window as any).turnstile !== 'undefined') {
+			(window as any).turnstile.render('#cf-turnstile-register', {
+				sitekey: data.turnstileSiteKey,
+				theme: 'light',
+				callback: () => { turnstileReady = true; },
+				expired: () => { turnstileReady = false; },
+				error: () => { turnstileReady = false; }
+			});
 		}
+	}
 
-		return () => {
-			if (turnstileWidgetId && typeof (window as any).turnstile !== 'undefined') {
-				(window as any).turnstile.remove(turnstileWidgetId);
+	onMount(() => {
+		// Wait for turnstile script to load
+		const checkTurnstile = setInterval(() => {
+			if (typeof (window as any).turnstile !== 'undefined') {
+				clearInterval(checkTurnstile);
+				renderTurnstile();
 			}
-		};
+		}, 100);
+
+		// Timeout after 10 seconds
+		setTimeout(() => clearInterval(checkTurnstile), 10000);
 	});
 </script>
 

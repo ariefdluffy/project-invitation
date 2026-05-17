@@ -5,8 +5,8 @@
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 	let turnstileReady = $state(false);
 
-	onMount(() => {
-		if (typeof window !== 'undefined' && (window as any).turnstile) {
+	function renderTurnstile() {
+		if (typeof (window as any).turnstile !== 'undefined') {
 			const container = document.getElementById('cf-turnstile-forgot');
 			if (container) {
 				(window as any).turnstile.render(container, {
@@ -18,6 +18,19 @@
 				});
 			}
 		}
+	}
+
+	onMount(() => {
+		// Wait for turnstile script to load
+		const checkTurnstile = setInterval(() => {
+			if (typeof (window as any).turnstile !== 'undefined') {
+				clearInterval(checkTurnstile);
+				renderTurnstile();
+			}
+		}, 100);
+
+		// Timeout after 10 seconds
+		setTimeout(() => clearInterval(checkTurnstile), 10000);
 	});
 </script>
 

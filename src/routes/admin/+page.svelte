@@ -49,11 +49,11 @@
 			<p>{data.monitoring?.totalAuditLogs || 0} entri</p>
 		</div>
 	</a>
-	<a href="/api/monitoring" class="quick-link-card" target="_blank">
+	<a href="/admin/monitoring" class="quick-link-card">
 		<div class="ql-icon">📡</div>
 		<div class="ql-info">
-			<h3>Monitoring API</h3>
-			<p>Views: {data.monitoring?.totalPageViews || 0}</p>
+			<h3>Monitoring</h3>
+			<p>Lihat statistik</p>
 		</div>
 	</a>
 </div>
