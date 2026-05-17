@@ -50,13 +50,13 @@
 	</div>
 </div>
 
-{#if data.user.role !== 'admin' && data.user.has_access !== 1}
+{#if data.user.role !== 'admin' && !data.hasActiveAccess}
 	<div class="dash-banner warning" style="animation: slideInDown 0.5s ease">
 		<div class="banner-content">
 			<span class="banner-icon">⚠️</span>
 			<div class="banner-text">
-				<strong>Akun Belum Aktif</strong>
-				<p>Anda belum memiliki akses untuk membuat undangan. Silakan lakukan aktivasi akun Anda.</p>
+				<strong>Akun Trial</strong>
+				<p>Anda belum memiliki akses untuk membuat undangan. Aktifkan trial 3 hari gratis atau upgrade ke premium.</p>
 			</div>
 		</div>
 		<a href="/dashboard/billing" class="btn btn-primary btn-sm">Aktivasi Akun</a>

@@ -1,5 +1,6 @@
 import { getInvitationsByUser } from '$lib/server/invitations';
 import { getSetting } from '$lib/server/settings';
+import { hasActiveAccess } from '$lib/server/users';
 
 export const load: LayoutServerLoad = async ({ locals }) => {
 	const invitations = await getInvitationsByUser(locals.user!.id);
@@ -7,6 +8,7 @@ export const load: LayoutServerLoad = async ({ locals }) => {
 	return {
 		user: locals.user!,
 		invitations,
-		appName
+		appName,
+		hasActiveAccess: hasActiveAccess(locals.user!)
 	};
 };

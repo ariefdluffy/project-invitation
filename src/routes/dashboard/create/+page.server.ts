@@ -1,11 +1,12 @@
 import type { PageServerLoad, Actions } from './$types';
 import { getTemplates, createInvitation, getInvitationsByUser } from '$lib/server/invitations';
 import { getSetting } from '$lib/server/settings';
+import { hasActiveAccess } from '$lib/server/users';
 import { fail, redirect } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({ locals }) => {
-	// Check if user has access
-	if (locals.user?.role !== 'admin' && locals.user?.has_access !== 1) {
+	// Check if user has access (paid or trial)
+	if (!hasActiveAccess(locals.user!)) {
 		throw redirect(303, '/dashboard/billing');
 	}
 
@@ -22,8 +23,8 @@ export const load: PageServerLoad = async ({ locals }) => {
 export const actions: Actions = {
 	default: async ({ request, locals }) => {
 		// Check access again in action
-		if (locals.user?.role !== 'admin' && locals.user?.has_access !== 1) {
-			return fail(403, { error: 'Anda belum memiliki akses untuk membuat undangan. Silakan lakukan pembayaran terlebih dahulu.' });
+		if (!hasActiveAccess(locals.user!)) {
+			return fail(403, { error: 'Anda belum memiliki akses untuk membuat undangan. Silakan lakukan pembayaran atau aktifkan trial.' });
 		}
 
 		// Check invitation limit again

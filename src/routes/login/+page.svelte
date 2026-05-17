@@ -107,4 +107,13 @@
 		font-size: 14px;
 		text-align: center;
 	}
+	.info-message {
+		background: #fff3cd;
+		color: #856404;
+		padding: 12px 16px;
+		border-radius: 8px;
+		margin-bottom: 16px;
+		font-size: 14px;
+		text-align: center;
+	}
 </style>

@@ -111,11 +111,26 @@
 				</div>
 			</div>
 		{:else}
-			<div class="access-panel access-panel--muted">
+			<div class="access-panel access-panel--success">
 				<p class="access-panel__text">
-					<strong>Akun Trial Gratis:</strong> Anda dapat membuat 1 undangan dengan maksimal 50 tamu selama 3 hari.
-					Upgrade ke paket premium untuk membuat hingga 5 undangan dengan 100 tamu.
+					<strong>Trial Aktif:</strong> Anda dapat membuat 1 undangan dengan maksimal 50 tamu selama 3 hari.
+					Upgrade ke paket premium untuk fitur lebih lengkap.
 				</p>
+				<div class="status-actions">
+					<a href="/dashboard/create" class="status-cta status-cta--primary">
+						<svg class="status-cta__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+							<circle cx="12" cy="12" r="10" />
+							<path d="M12 8v8M8 12h8" />
+						</svg>
+						<span class="status-cta__copy">
+							<span class="status-cta__label">Buat Undangan</span>
+							<span class="status-cta__hint">Gunakan paket trial Anda</span>
+						</span>
+						<svg class="status-cta__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+							<path d="M9 18l6-6-6-6" />
+						</svg>
+					</a>
+				</div>
 			</div>
 		{/if}
 	</div>
