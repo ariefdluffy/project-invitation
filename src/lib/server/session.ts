@@ -3,7 +3,7 @@ import { env } from '$env/dynamic/private';
 import { getActiveSession } from './session-store';
 
 const SESSION_SECRET: string = env.SESSION_SECRET || '';
-const SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60; // 7 days
+const SESSION_MAX_AGE_SECONDS = 2 * 24 * 60 * 60; // 2 days
 
 export const SESSION_TTL_SECONDS = SESSION_MAX_AGE_SECONDS;
 
