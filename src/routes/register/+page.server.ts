@@ -6,7 +6,7 @@ import { logAudit } from "$lib/server/audit-log";
 import { TURNSTILE_SECRET_KEY } from "$env/static/private";
 import { dev } from "$app/environment";
 import { checkRateLimit, ipKey } from "$lib/server/rate-limiter";
-import { sendWelcomeEmail } from "$lib/server/email";
+import { sendWelcomeEmail, sendVerificationEmail } from "$lib/server/email";
 import { getSetting } from "$lib/server/settings";
 import { getClientIp } from "$lib/server/utils";
 
@@ -98,28 +98,27 @@ export const actions: Actions = {
 				action: "user.register",
 				userId: user.id,
 				email: user.email,
-				details: "3-day trial started",
+				details: "3-day trial started, email verification pending",
 				ip: clientIp,
 			});
 
-			// Set signed session
-			const sessionToken = createSessionToken(user.id);
-			cookies.set("session", sessionToken, {
-				path: "/",
-				httpOnly: true,
-				sameSite: "lax",
-				secure: !dev,
-				maxAge: 60 * 60 * 24 * 7,
-			});
-
-			// Send welcome email (async, don't block)
+			// Send verification email (async, don't block)
 			getSetting("app_name")
-				.then((appName) => {
-					sendWelcomeEmail(email, username, appName || "Wedding.id");
+				.then(async (appName) => {
+					const appN = appName || "Wedding.id";
+					const origin = process.env.ORIGIN || 'https://temuin.web.id';
+					const verifyLink = `${origin}/verify-email/${user.email_verify_token}`;
+					sendVerificationEmail(email, verifyLink, appN);
 				})
 				.catch(() => {});
 
-			throw redirect(303, "/dashboard");
+			// Redirect to login with success message
+			cookies.set("verify_success", email, {
+				path: "/",
+				httpOnly: true,
+			maxAge: 60 * 5,
+			});
+			throw redirect(303, "/login?registered=1");
 		} catch (err: unknown) {
 			if (
 				err &&

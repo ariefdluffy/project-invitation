@@ -72,9 +72,15 @@ export const actions: Actions = {
 			});
 		}
 
+		// Authenticate user
 		const user = await authenticateUser(email, password);
 		if (!user) {
-			return fail(400, { error: "Email atau password salah", email });
+			return fail(401, { error: "Email atau password salah", email });
+		}
+
+		// Check if email is verified (skip for admins)
+		if (user.email_verified !== 1 && user.role !== 'admin') {
+			return fail(403, { error: "Email belum diverifikasi. Silakan cek inbox email Anda.", email });
 		}
 
 		// Set signed session cookie

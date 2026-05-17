@@ -8,6 +8,7 @@ import {
   getUserById,
   ensureResetTokenColumns,
   ensureTrialColumn,
+  ensureEmailVerifyColumns,
 } from "$lib/server/users";
 import { ensurePaymentTransactionsTable } from "$lib/server/payment-transactions";
 import { verifySessionToken } from "$lib/server/session";
@@ -33,6 +34,7 @@ export const handle: Handle = async ({ event, resolve }) => {
     await ensurePaymentTransactionsTable();
     await ensureResetTokenColumns();
     await ensureTrialColumn();
+    await ensureEmailVerifyColumns();
     await ensurePackagesTable();
     await seedPackages();
     await ensurePromoCodesTable();

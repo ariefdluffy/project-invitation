@@ -33,13 +33,25 @@ function getTransporter(): nodemailer.Transporter | null {
 	const config = getConfig();
 	if (!config) return null;
 
+	console.log('[Email] Config:', { host: config.host, port: config.port, user: config.user });
+
 	transporter = nodemailer.createTransport({
 		host: config.host,
 		port: config.port,
 		secure: config.port === 465,
+		requireTLS: true,
 		auth: {
 			user: config.user,
 			pass: config.pass
+		}
+	});
+
+	// Verify connection on startup
+	transporter.verify((err, success) => {
+		if (err) {
+			console.error('[Email] Transport verify failed:', err.message);
+		} else {
+			console.log('[Email] Transport ready:', success);
 		}
 	});
 
@@ -51,6 +63,43 @@ export interface EmailOptions {
 	subject: string;
 	text?: string;
 	html?: string;
+}
+
+export async function sendVerificationEmail(to: string, verifyLink: string, appName: string): Promise<{ sent: boolean; error?: string }> {
+	return sendEmail({
+		to,
+		subject: `Verifikasi Email - ${appName}`,
+		html: `
+		<div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
+			<h2 style="color: #1a1a2e;">Verifikasi Email</h2>
+			<p>Selamat! Anda telah berhasil membuat akun.</p>
+			<p>Klik tombol di bawah untuk verifikasi email Anda:</p>
+			<div style="text-align: center; margin: 32px 0;">
+				<a href="${verifyLink}"
+					style="display: inline-block; padding: 12px 32px; background: #d4a574; color: #fff;
+						   text-decoration: none; border-radius: 8px; font-weight: 600;">
+					Verifikasi Email
+				</a>
+			</div>
+			<p style="color: #666; font-size: 14px;">Link verifikasi berlaku selama 24 jam.</p>
+			<p style="color: #666; font-size: 14px;">Jika Anda tidak merasa membuat akun, abaikan email ini.</p>
+			<hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;" />
+			<p style="color: #999; font-size: 12px;">&copy; ${new Date().getFullYear()} ${appName}</p>
+		</div>
+	`,
+		text: `
+Verifikasi Email - ${appName}
+
+
+Selamat! Anda telah berhasil membuat akun.
+
+Klik link berikut untuk verifikasi email:
+${verifyLink}
+
+Link verifikasi berlaku selama 24 jam.
+Jika Anda tidak merasa membuat akun, abaikan email ini.
+		`.trim()
+	});
 }
 
 /**

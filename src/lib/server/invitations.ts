@@ -460,7 +460,7 @@ export async function seedAdmin(): Promise<void> {
 	if (count > 0) return;
 
 	const { createUser } = await import('./users');
-	await createUser('admin', 'admin@wedding.com', 'admin123', 'admin');
+	await createUser('admin', 'admin@wedding.com', 'admin123', 'admin', true);
 }
 
 export async function getGuestStatsByUser(userId: string) {

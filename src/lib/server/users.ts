@@ -1,6 +1,7 @@
 import { getDb } from './db';
 import { v4 as uuidv4 } from 'uuid';
 import bcryptjs from 'bcryptjs';
+import crypto from 'crypto';
 
 export interface User {
 	id: string;
@@ -15,24 +16,30 @@ export interface User {
 	template_quota: number;
 	template_quota_used: number;
 	trial_ends_at: string | null;
+	email_verified: number;
+	email_verify_token: string | null;
+	email_verify_expires: string | null;
 	created_at: string;
 }
 
-export async function createUser(username: string, email: string, password: string, role: string = 'user'): Promise<User> {
+export async function createUser(username: string, email: string, password: string, role: string = 'user', emailVerified: boolean = false): Promise<User> {
 	const db = await getDb();
 	const id = uuidv4();
 	const hashedPassword = bcryptjs.hashSync(password, 10);
+	const emailVerifyToken = crypto.randomBytes(32).toString('hex');
 
 	// Set 3-day trial for new users
 	const trialEndsAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
 		.toISOString().slice(0, 19).replace('T', ' ');
+	const verifyExpires = new Date(Date.now() + 24 * 60 * 60 * 1000)
+		.toISOString().slice(0, 19).replace('T', ' ');
 
 	await db.execute(
-		'INSERT INTO users (id, username, email, password, role, has_access, payment_status, invitation_limit, guest_limit, trial_ends_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-		[id, username, email, hashedPassword, role, 0, 'unpaid', 1, 50, trialEndsAt]
+		'INSERT INTO users (id, username, email, password, role, has_access, payment_status, invitation_limit, guest_limit, trial_ends_at, email_verified, email_verify_token, email_verify_expires) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+		[id, username, email, hashedPassword, role, 0, 'unpaid', 1, 50, trialEndsAt, emailVerified ? 1 : 0, emailVerified ? null : emailVerifyToken, emailVerified ? null : verifyExpires]
 	);
 
-	return { id, username, email, role, has_access: 0, payment_status: 'unpaid', invitation_limit: 1, guest_limit: 50, template_quota: 0, template_quota_used: 0, trial_ends_at: trialEndsAt, created_at: new Date().toISOString() };
+	return { id, username, email, role, has_access: 0, payment_status: 'unpaid', invitation_limit: 1, guest_limit: 50, template_quota: 0, template_quota_used: 0, trial_ends_at: trialEndsAt, email_verified: emailVerified ? 1 : 0, email_verify_token: emailVerified ? null : emailVerifyToken, email_verify_expires: emailVerified ? null : verifyExpires, created_at: new Date().toISOString() };
 }
 
 export async function authenticateUser(email: string, password: string): Promise<User | null> {
@@ -208,6 +215,60 @@ export async function ensureTrialColumn(): Promise<void> {
 	} catch (err) {
 		console.error('Migration Error (trial_ends_at):', err);
 	}
+}
+
+export async function ensureEmailVerifyColumns(): Promise<void> {
+	const db = await getDb();
+	try {
+		const [rows] = await db.execute("SHOW COLUMNS FROM users LIKE 'email_verified'");
+		if ((rows as any[]).length === 0) {
+			console.log('Adding email verification columns to users table...');
+			await db.execute(
+				"ALTER TABLE users ADD COLUMN email_verified TINYINT(1) DEFAULT 0 AFTER trial_ends_at"
+			);
+			await db.execute(
+				"ALTER TABLE users ADD COLUMN email_verify_token VARCHAR(255) NULL AFTER email_verified"
+			);
+			await db.execute(
+				"ALTER TABLE users ADD COLUMN email_verify_expires DATETIME NULL AFTER email_verify_token"
+			);
+		}
+	} catch (err) {
+		console.error('Migration Error (email_verify):', err);
+	}
+}
+
+export async function verifyEmail(token: string): Promise<{ success: boolean; error?: string }> {
+	const db = await getDb();
+	const [rows] = await db.execute(
+		'SELECT id, email_verify_token, email_verify_expires FROM users WHERE email_verify_token = ?',
+		[token]
+	);
+	const userRows = rows as { id: string; email_verify_token: string | null; email_verify_expires: string | null }[];
+
+	if (userRows.length === 0) {
+		return { success: false, error: 'Token tidak valid' };
+	}
+
+
+	const user = userRows[0];
+	if (!user.email_verify_token || !user.email_verify_expires) {
+		return { success: false, error: 'Token tidak valid' };
+	}
+
+	// Check expiry
+	const expiresAt = new Date(user.email_verify_expires + 'Z').getTime();
+	if (Date.now() > expiresAt) {
+		return { success: false, error: 'Token sudah expired' };
+	}
+
+	// Update user
+	await db.execute(
+		'UPDATE users SET email_verified = 1, email_verify_token = NULL, email_verify_expires = NULL WHERE id = ?',
+		[user.id]
+	);
+
+	return { success: true };
 }
 
 export function isUserInTrial(user: User): boolean {

@@ -5,11 +5,16 @@
 	let { data, form }: { data: PageData; form: ActionData } = $props();
 	let turnstileReady = $state(false);
 	let resetSuccess = $state(false);
+	let registeredSuccess = $state(false);
 
 	$effect(() => {
 		const params = new URLSearchParams(window.location.search);
 		if (params.get('reset') === 'success') {
 			resetSuccess = true;
+			window.history.replaceState({}, '', '/login');
+		}
+		if (params.get('registered') === '1') {
+			registeredSuccess = true;
 			window.history.replaceState({}, '', '/login');
 		}
 	});
@@ -52,6 +57,10 @@
 
 		{#if resetSuccess}
 			<div class="success-message">Password berhasil direset. Silakan login dengan password baru.</div>
+		{/if}
+
+		{#if registeredSuccess}
+			<div class="info-message">Akun berhasil dibuat. Silakan cek email untuk verifikasi sebelum login.</div>
 		{/if}
 
 		{#if form?.error}
