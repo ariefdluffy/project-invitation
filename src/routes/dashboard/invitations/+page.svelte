@@ -114,7 +114,7 @@
 					</form>
 					{#if inv.is_published}
 						<a href="/invitation/{inv.slug}" target="_blank" class="btn-action secondary" title="Lihat Tampilan">
-							<span>👁️</span> Lihat
+							<span>🔍</span> Lihat
 						</a>
 					{/if}
 				</div>

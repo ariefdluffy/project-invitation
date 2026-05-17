@@ -186,7 +186,7 @@
 	</div>
 	<div class="header-actions">
 		{#if data.invitation.is_published}
-			<a href="/invitation/{data.invitation.slug}" target="_blank" class="btn btn-secondary btn-sm">👁️ Lihat</a>
+			<a href="/invitation/{data.invitation.slug}" target="_blank" class="btn btn-secondary btn-sm">🔍 Lihat</a>
 			<form method="POST" action="?/unpublish" style="display:inline">
 				<button type="submit" class="btn btn-secondary btn-sm">Unpublish</button>
 			</form>

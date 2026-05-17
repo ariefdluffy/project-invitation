@@ -279,7 +279,7 @@
 
 		<div class="analytics-grid">
 			<div class="analytics-item">
-				<span class="analytics-icon">👁️</span>
+				<span class="analytics-icon">📊</span>
 				<div>
 					<div class="analytics-value">{formatNumber(data.userStats?.totalViews ?? 0)}</div>
 					<div class="analytics-label">Total Views</div>
