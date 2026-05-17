@@ -110,11 +110,11 @@
 					</a>
 				</div>
 			</div>
-		{:else}
+		{:else if data.trialActive}
 			<div class="access-panel access-panel--success">
 				<p class="access-panel__text">
-					<strong>Trial Aktif:</strong> Anda dapat membuat 1 undangan dengan maksimal 50 tamu selama 3 hari.
-					Upgrade ke paket premium untuk fitur lebih lengkap.
+					<strong>Trial Aktif</strong> — Masa percobaan aktif hingga <strong>{new Date(data.trialEndsAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</strong>.<br>
+					Buat 1 undangan dengan maksimal 50 tamu. Upgrade ke premium untuk fitur lebih lengkap.
 				</p>
 				<div class="status-actions">
 					<a href="/dashboard/create" class="status-cta status-cta--primary">
@@ -132,22 +132,31 @@
 					</a>
 				</div>
 			</div>
+		{:else}
+			<div class="access-panel access-panel--muted">
+				<p class="access-panel__text">
+					<strong>Belum Aktivasi:</strong> Aktifkan trial gratis 3 hari atau upgrade ke paket premium.
+				</p>
+				<div class="status-actions">
+					<form method="POST" action="?/activateTrial">
+						<button type="submit" class="status-cta status-cta--primary">
+							<svg class="status-cta__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+								<circle cx="12" cy="12" r="10" />
+								<path d="M12 8v8M8 12h8" />
+							</svg>
+							<span class="status-cta__copy">
+								<span class="status-cta__label">Aktivasi Sekarang</span>
+								<span class="status-cta__hint">Trial gratis 3 hari</span>
+							</span>
+							<svg class="status-cta__chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+								<path d="M9 18l6-6-6-6" />
+							</svg>
+						</button>
+					</form>
+				</div>
+			</div>
 		{/if}
 	</div>
-
-	{#if data.trialActive}
-	<div class="trial-banner">
-		<div class="trial-banner__inner">
-			<span class="trial-banner__icon">⏳</span>
-			<div class="trial-banner__text">
-				<span class="trial-banner__title">Masa percobaan aktif</span>
-				<span class="trial-banner__sub">
-					Akses penuh hingga {new Date(data.trialEndsAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-				</span>
-			</div>
-		</div>
-	</div>
-	{/if}
 
 	<!-- Premium Package Card -->
 	<div class="dash-card package-card package-card--popular">

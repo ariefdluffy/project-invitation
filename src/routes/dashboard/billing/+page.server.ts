@@ -1,6 +1,7 @@
 import type { PageServerLoad, Actions } from './$types';
 import { getSetting } from '$lib/server/settings';
-import { hasActiveAccess } from '$lib/server/users';
+import { hasActiveAccess, activateTrial } from '$lib/server/users';
+import { fail, redirect } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async ({ locals }) => {
 	const user = locals.user;
@@ -23,4 +24,15 @@ export const load: PageServerLoad = async ({ locals }) => {
 	};
 };
 
-export const actions: Actions = {};
+export const actions: Actions = {
+	activateTrial: async ({ locals }) => {
+		if (!locals.user) {
+			return fail(401, { error: 'Unauthorized' });
+		}
+		const result = await activateTrial(locals.user.id);
+		if (!result.success) {
+			return fail(400, { error: result.error });
+		}
+		throw redirect(303, '/dashboard/billing');
+	}
+};

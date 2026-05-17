@@ -280,3 +280,30 @@ export function hasActiveAccess(user: User): boolean {
 	if (user.has_access === 1) return true;
 	return isUserInTrial(user);
 }
+
+export async function activateTrial(userId: string): Promise<{ success: boolean; error?: string }> {
+	const db = await getDb();
+
+	// Cek apakah user sudah pernah punya trial
+	const [rows] = await db.execute(
+		'SELECT trial_ends_at FROM users WHERE id = ?',
+		[userId]
+	);
+	const users = rows as { trial_ends_at: string | null }[];
+
+	if (users.length === 0) {
+		return { success: false, error: 'User tidak ditemukan' };
+	}
+
+	if (users[0].trial_ends_at) {
+		return { success: false, error: 'Trial sudah pernah digunakan. Silakan upgrade ke premium.' };
+	}
+
+	const trialEndsAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
+		.toISOString().slice(0, 19).replace('T', ' ');
+	await db.execute(
+		'UPDATE users SET trial_ends_at = ? WHERE id = ?',
+		[trialEndsAt, userId]
+	);
+	return { success: true };
+}
