@@ -103,49 +103,32 @@ export const handle: Handle = async ({ event, resolve }) => {
     transformPageChunk: ({ html }) => html.replace(/%csp_nonce%/g, nonce),
   });
 
-  // Build Content Security Policy.
-  // - In dev we relax script-src so Vite HMR (which uses inline scripts and eval)
-  //   keeps working. We must NOT include a nonce here, because the CSP spec says
-  //   `'unsafe-inline'` is ignored whenever a nonce/hash is also listed, which
-  //   would block Vite's HMR scripts.
-  // - In production, `csp.mode: 'nonce'` in svelte.config.js makes SvelteKit read
-  //   `event.locals.cspNonce` and add it to <script> and <style> tags, so the
-  //   nonce in this header matches what SvelteKit outputs.
-  // - `style-src` keeps `'unsafe-inline'` because for CSS the keyword is still
-  //   honoured alongside nonces (unlike script-src where nonce overrides it).
-  const scriptSrc = dev
-    ? `'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://*.cloudflare.com https://static.cloudflareinsights.com`
-    : `'self' 'nonce-${nonce}' 'strict-dynamic' https://challenges.cloudflare.com https://*.cloudflare.com https://static.cloudflareinsights.com`;
-
-  // style-src-attr: governs inline style="..." attributes — must use 'unsafe-inline'
-  // because attributes cannot carry a nonce. 'unsafe-inline' is only ignored when a
-  // nonce/hash is present in the *same* directive, so keeping it in a separate
-  // style-src-attr directive is safe.
-  //
-  // style-src-elem: governs <style> blocks — SvelteKit (csp.mode:'nonce') stamps every
-  // generated <style> tag with the per-request nonce, so we can require it here.
-  //
-  // style-src: fallback for browsers that don't support the granular directives.
-  // Must NOT include a nonce (which would cause 'unsafe-inline' to be ignored).
-  const csp = [
-    "default-src 'self'",
-    `script-src ${scriptSrc}`,
-    `script-src-elem ${scriptSrc}`,
-    `script-src-attr 'none'`,
-    `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`,
-    `style-src-attr 'unsafe-inline'`,
-    `style-src-elem 'self' 'nonce-${nonce}' https://fonts.googleapis.com https://fonts.gstatic.com`,
-    "img-src 'self' data: blob: https://challenges.cloudflare.com https://*.cloudflare.com https://images.unsplash.com https://*.unsplash.com https://res.cloudinary.com https://*.cloudinary.com",
-    "font-src 'self' data: https://fonts.gstatic.com",
-    "connect-src 'self' https://challenges.cloudflare.com https://*.cloudflare.com https://static.cloudflareinsights.com",
-    "frame-src 'self' https://challenges.cloudflare.com https://*.cloudflare.com",
-    "object-src 'none'",
-    "base-uri 'self'",
-    "form-action 'self'",
-    "frame-ancestors 'self'",
-  ].join("; ");
-
-  response.headers.set("Content-Security-Policy", csp);
+  // CSP Strategy:
+  // - PRODUCTION: svelte.config.js (csp.mode:'nonce') handles the full CSP header.
+  //   SvelteKit reads event.locals.cspNonce, stamps every generated <script> and
+  //   <style> tag with that nonce, and sets the Content-Security-Policy header.
+  //   We must NOT override it here — doing so would cause a nonce mismatch.
+  // - DEV: Vite HMR needs 'unsafe-inline' and 'unsafe-eval'. SvelteKit's static
+  //   directives config can't express that, so we override the header in dev only.
+  if (dev) {
+    const devCsp = [
+      "default-src 'self'",
+      `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com https://*.cloudflare.com https://static.cloudflareinsights.com`,
+      `script-src-elem 'self' 'unsafe-inline' https://challenges.cloudflare.com https://*.cloudflare.com https://static.cloudflareinsights.com`,
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "style-src-elem 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com",
+      "img-src 'self' data: blob: https://challenges.cloudflare.com https://*.cloudflare.com https://images.unsplash.com https://*.unsplash.com https://res.cloudinary.com https://*.cloudinary.com",
+      "font-src 'self' data: https://fonts.gstatic.com",
+      "connect-src 'self' ws: wss: https://challenges.cloudflare.com https://*.cloudflare.com https://static.cloudflareinsights.com",
+      "frame-src 'self' https://challenges.cloudflare.com https://*.cloudflare.com",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+      "frame-ancestors 'self'",
+    ].join("; ");
+    response.headers.set("Content-Security-Policy", devCsp);
+  }
+  // Production: SvelteKit already set the CSP header — do not override.
 
   // Additional hardening headers
   response.headers.set("X-Content-Type-Options", "nosniff");
