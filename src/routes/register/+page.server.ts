@@ -108,6 +108,7 @@ export const actions: Actions = {
 					const appN = appName || "Wedding.id";
 					const origin = process.env.ORIGIN || 'https://temuin.web.id';
 					const verifyLink = `${origin}/verify-email/${user.email_verify_token}`;
+					console.log('[Register] Verification link:', verifyLink);
 					sendVerificationEmail(email, verifyLink, appN);
 				})
 				.catch(() => {});

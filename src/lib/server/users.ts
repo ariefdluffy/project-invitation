@@ -137,7 +137,7 @@ export async function ensureGuestLimitColumn(): Promise<void> {
 export async function getUserByEmail(email: string): Promise<User | null> {
 	const db = await getDb();
 	const [rows] = await db.execute(
-		'SELECT id, username, email, role, has_access, payment_status, invitation_limit, guest_limit, template_quota, template_quota_used, created_at FROM users WHERE email = ?',
+		'SELECT id, username, email, role, has_access, payment_status, invitation_limit, guest_limit, template_quota, template_quota_used, created_at, email_verified, email_verify_token, email_verify_expires FROM users WHERE email = ?',
 		[email]
 	);
 	const userRows = rows as User[];
@@ -245,6 +245,9 @@ export async function verifyEmail(token: string): Promise<{ success: boolean; er
 		[token]
 	);
 	const userRows = rows as { id: string; email_verify_token: string | null; email_verify_expires: string | null }[];
+
+	console.log('[VerifyEmail] Token received:', token);
+	console.log('[VerifyEmail] Rows found:', userRows.length);
 
 	if (userRows.length === 0) {
 		return { success: false, error: 'Token tidak valid' };
