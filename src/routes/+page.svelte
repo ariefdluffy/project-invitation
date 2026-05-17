@@ -4,6 +4,11 @@
 
 	let scrollY = $state(0);
 	let visible = $state(false);
+	let iframeLoaded = $state<Record<number, boolean>>({});
+
+	function onThumbLoad(id: number) {
+		iframeLoaded[id] = true;
+	}
 
 	$effect(() => {
 		visible = true;
@@ -151,49 +156,43 @@
 		<div class="templates-grid">
 			{#each data.templates as template, i}
 				<div class="template-card" style="animation-delay: {i * 0.15}s">
-					<div
-						class="template-preview"
-						style="background: linear-gradient(135deg, {template.primary_color}, {template.secondary_color})"
-					>
-						<div class="template-preview-content">
-							<span
-								class="preview-label"
-								style="color: {template.accent_color}"
-								>THE WEDDING OF</span
-							>
-							<span
-								class="preview-names"
-								style="font-family: {template.font_family}, serif; color: {template.accent_color}"
-								>Romeo & Juliet</span
-							>
-							<span
-								class="preview-date"
-								style="color: {template.accent_color}"
-								>04 . 04 . 2026</span
-							>
-						</div>
+					<!-- Live iframe thumbnail -->
+					<div class="template-thumb-container">
+						{#if !iframeLoaded[template.id]}
+							<div class="thumb-skeleton">
+								<div class="thumb-shimmer"></div>
+								<span class="thumb-skeleton-label">Memuat…</span>
+							</div>
+						{/if}
+						<iframe
+							src="/demo/{template.id}"
+							title="Preview {template.name}"
+							class="thumb-iframe"
+							class:thumb-loaded={iframeLoaded[template.id]}
+							loading="lazy"
+							scrolling="no"
+							tabindex="-1"
+							aria-hidden="true"
+							onload={() => onThumbLoad(template.id)}
+						></iframe>
+						<!-- Overlay blocks clicks & shows CTA on hover -->
 						<div class="template-overlay">
-							<a href="/register" class="btn btn-primary"
-								>Gunakan Template</a
-							>
+							<a href="/register" class="btn btn-primary">Gunakan Template</a>
 						</div>
 					</div>
 					<div class="template-info">
 						<h3>{template.name}</h3>
 						<p>{template.description}</p>
 						<div class="template-colors">
-							<span
-								class="color-dot"
-								style="background: {template.primary_color}"
-							></span>
-							<span
-								class="color-dot"
-								style="background: {template.secondary_color}"
-							></span>
-							<span
-								class="color-dot"
-								style="background: {template.accent_color}; border: 1px solid #ddd"
-							></span>
+							{#if template.primary_color}
+								<span class="color-dot" style="background:{template.primary_color}" title="Primary"></span>
+							{/if}
+							{#if template.secondary_color}
+								<span class="color-dot" style="background:{template.secondary_color}" title="Secondary"></span>
+							{/if}
+							{#if template.accent_color}
+								<span class="color-dot" style="background:{template.accent_color};border:1px solid #ddd" title="Accent"></span>
+							{/if}
 						</div>
 					</div>
 				</div>
@@ -648,49 +647,81 @@
 	}
 	.templates-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+		grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 		gap: 2rem;
 	}
 	.template-card {
 		background: white;
 		border-radius: 16px;
 		overflow: hidden;
-		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 		transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 		animation: fadeInUp 0.6s ease both;
 	}
 	.template-card:hover {
 		transform: translateY(-8px);
-		box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+		box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
 	}
-	.template-preview {
-		height: 320px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
+
+	/* ── Iframe thumbnail (mirrors dashboard/create) ── */
+	.template-thumb-container {
+		height: 240px;
 		position: relative;
 		overflow: hidden;
+		background: #0d0d1a;
+		flex-shrink: 0;
 	}
-	.template-preview-content {
-		text-align: center;
-		z-index: 1;
+	.thumb-skeleton {
+		position: absolute;
+		inset: 0;
+		z-index: 2;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.6rem;
+		background: #0d0d1a;
 	}
-	.preview-label {
-		display: block;
-		font-size: 0.7rem;
-		letter-spacing: 4px;
-		opacity: 0.9;
-		margin-bottom: 0.5rem;
+	.thumb-shimmer {
+		width: 55%;
+		height: 7px;
+		border-radius: 999px;
+		background: linear-gradient(90deg, #1a1a2e 25%, #2a2a4a 50%, #1a1a2e 75%);
+		background-size: 200% 100%;
+		animation: thumbShimmer 1.4s infinite;
 	}
-	.preview-names {
-		display: block;
-		font-size: 2.2rem;
-		margin-bottom: 0.5rem;
+	@keyframes thumbShimmer {
+		0% { background-position: 200% 0; }
+		100% { background-position: -200% 0; }
 	}
-	.preview-date {
-		font-size: 0.85rem;
-		letter-spacing: 4px;
-		opacity: 0.8;
+	.thumb-skeleton-label {
+		font-size: 0.65rem;
+		color: #8888aa;
+	}
+	.thumb-iframe {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 1280px;
+		height: 900px;
+		border: none;
+		transform-origin: top left;
+		transform: scale(0.235);
+		pointer-events: none;
+		opacity: 0;
+		transition: opacity 0.4s ease;
+	}
+	@media (max-width: 1280px) {
+		.thumb-iframe { transform: scale(0.27); }
+	}
+	@media (max-width: 900px) {
+		.thumb-iframe { transform: scale(0.38); }
+	}
+	@media (max-width: 560px) {
+		.thumb-iframe { transform: scale(0.55); }
+	}
+	.thumb-iframe.thumb-loaded {
+		opacity: 1;
 	}
 	.template-overlay {
 		position: absolute;
@@ -701,33 +732,38 @@
 		justify-content: center;
 		opacity: 0;
 		transition: opacity 0.3s;
+		z-index: 3;
 	}
 	.template-card:hover .template-overlay {
 		opacity: 1;
 	}
+
+	/* ── Info bar below thumbnail ── */
 	.template-info {
-		padding: 1.5rem;
+		padding: 1.25rem 1.5rem;
 		text-align: left;
 	}
 	.template-info h3 {
 		font-family: "Playfair Display", serif;
-		font-size: 1.2rem;
-		margin-bottom: 0.5rem;
+		font-size: 1.1rem;
+		margin-bottom: 0.35rem;
+		color: #1a1a2e;
 	}
 	.template-info p {
 		color: var(--color-text-light);
-		font-size: 0.9rem;
+		font-size: 0.85rem;
 		line-height: 1.5;
-		margin-bottom: 1rem;
+		margin-bottom: 0.75rem;
 	}
 	.template-colors {
 		display: flex;
 		gap: 6px;
 	}
 	.color-dot {
-		width: 20px;
-		height: 20px;
+		width: 18px;
+		height: 18px;
 		border-radius: 50%;
+		display: inline-block;
 	}
 
 	/* Features */
