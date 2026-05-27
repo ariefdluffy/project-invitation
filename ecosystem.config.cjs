@@ -25,7 +25,9 @@ module.exports = {
   apps: [
     {
       name: "project-invitation",
-      script: "bun",
+      // Gunakan path absolut bun - cek dengan 'which bun' di server
+      // Ganti sesuai hasil 'which bun' di server kamu
+      script: process.env.BUN_PATH || '/home/miftah/.bun/bin/bun',
       args: "./build/index.js",
       // Gunakan __dirname agar path otomatis mengikuti lokasi ecosystem.config.cjs
       cwd: __dirname,
