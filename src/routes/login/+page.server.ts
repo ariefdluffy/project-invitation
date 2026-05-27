@@ -39,8 +39,8 @@ async function verifyTurnstile(token: string, secretKey: string): Promise<{ succ
  * - Selainnya → pakai SECRET_KEY dari env
  */
 function getEffectiveSecret(): string {
-	if (!SECRET_KEY || SECRET_KEY === TURNSTILE_TEST_SECRET) return TURNSTILE_TEST_SECRET;
-	return SECRET_KEY;
+	if (!SECRET_KEY || SECRET_KEY.trim() === TURNSTILE_TEST_SECRET) return TURNSTILE_TEST_SECRET;
+	return SECRET_KEY.trim();
 }
 
 export const actions: Actions = {

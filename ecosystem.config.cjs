@@ -42,6 +42,23 @@ module.exports = {
         NODE_ENV: "production",
         PORT: 3003,
         HOST: "0.0.0.0",
+        // Teruskan semua env vars penting ke child process
+        SITE_KEY: process.env.SITE_KEY,
+        SECRET_KEY: process.env.SECRET_KEY,
+        PUBLIC_TURNSTILE_SITE_KEY: process.env.PUBLIC_TURNSTILE_SITE_KEY,
+        TURNSTILE_SECRET_KEY: process.env.TURNSTILE_SECRET_KEY,
+        SESSION_SECRET: process.env.SESSION_SECRET,
+        UPLOADS_SIGNING_SECRET: process.env.UPLOADS_SIGNING_SECRET,
+        DB_HOST: process.env.DB_HOST,
+        DB_PORT: process.env.DB_PORT,
+        DB_NAME: process.env.DB_NAME,
+        DB_USER: process.env.DB_USER,
+        DB_PASSWORD: process.env.DB_PASSWORD,
+        ORIGIN: process.env.ORIGIN,
+        ADMIN_USERNAME: process.env.ADMIN_USERNAME,
+        ADMIN_EMAIL: process.env.ADMIN_EMAIL,
+        ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
+        MAX_FILE_SIZE: process.env.MAX_FILE_SIZE,
       },
 
       // ========================================
