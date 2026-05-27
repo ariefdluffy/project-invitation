@@ -28,7 +28,8 @@ module.exports = {
       // Application Name & Entry Point
       // ========================================
       name: 'project-invitation',
-      script: './build/index.js',
+      script: 'bun',
+      args: './build/index.js',
       cwd: '/var/www/project-invitation',
 
       // ========================================
@@ -70,9 +71,9 @@ module.exports = {
       kill_timeout: 5000,
 
       // ========================================
-      // Node.js Specific Options
+      // Bun Runtime (tidak perlu node_args)
       // ========================================
-      node_args: '--max-old-space-size=384',
+      // node_args tidak dipakai saat menggunakan Bun
 
       // ========================================
       // Health Check
@@ -97,7 +98,7 @@ module.exports = {
       ref: 'origin/main',
       repo: 'https://github.com/your-repo/project-invitation.git',
       path: '/opt/project-invitation',
-      'post-deploy': 'npm install && npm run build && pm2 restart project-invitation',
+      'post-deploy': 'bun install && bun run build && pm2 restart project-invitation',
       'pre-deploy-local': 'echo "Deploying to production"'
     }
   }
