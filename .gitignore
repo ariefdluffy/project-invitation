@@ -40,7 +40,7 @@ check.log
 *.sln
 *.sw?
 
-# Uploads
+# Uploads - user uploaded files (jangan commit ke git)
 static/uploads/*
 !static/uploads/.gitkeep
 
