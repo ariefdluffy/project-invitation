@@ -1,0 +1,97 @@
+import type { PageServerLoad, Actions } from './$types';
+import { fail } from '@sveltejs/kit';
+import { env } from '$env/dynamic/private';
+import fs from 'fs';
+import path from 'path';
+import { isAllowedImageType } from '$lib/server/magic-bytes';
+import { optimizeImage } from '$lib/server/image-optimizer';
+
+export const load: PageServerLoad = async ({ locals }) => {
+	const userDir = path.join(process.cwd(), 'static', 'uploads', locals.user!.id);
+
+	let files: { name: string, url: string, size: number, mtimeMs: number }[] = [];
+
+	if (fs.existsSync(userDir)) {
+		const fileNames = fs.readdirSync(userDir);
+		files = fileNames.map(name => {
+			const stat = fs.statSync(path.join(userDir, name));
+			return {
+				name,
+				url: `/uploads/${locals.user!.id}/${name}`,
+				size: stat.size,
+				mtimeMs: stat.mtimeMs
+			};
+		}).sort((a, b) => b.mtimeMs - a.mtimeMs); // Sort by newest
+	}
+
+	return { files };
+};
+
+export const actions: Actions = {
+	upload: async ({ request, locals }) => {
+		const formData = await request.formData();
+		const file = formData.get('file') as File;
+
+		if (!file || file.size === 0) {
+			return fail(400, { error: 'Tidak ada file yang dipilih' });
+		}
+
+		// Validate by magic bytes (actual file signature), not just MIME header
+		const fileBuffer = Buffer.from(await file.arrayBuffer());
+		const detectedType = isAllowedImageType(new Uint8Array(fileBuffer));
+		if (!detectedType) {
+			return fail(400, { error: 'Hanya file JPG dan PNG yang diperbolehkan' });
+		}
+
+		const maxFileSize = Number(env.MAX_FILE_SIZE || 1048576);
+		if (file.size > maxFileSize) {
+			return fail(400, { error: 'Ukuran file melebihi batas 1MB' });
+		}
+
+		// Create user directory if it doesn't exist
+		const userDir = path.join(process.cwd(), 'static', 'uploads', locals.user!.id);
+		if (!fs.existsSync(userDir)) {
+			fs.mkdirSync(userDir, { recursive: true });
+		}
+
+		// Clean filename - gunakan ekstensi dari detected type (lebih aman)
+		const ext = detectedType === 'image/jpeg' ? '.jpg' : '.png';
+		const basename = path.basename(file.name, path.extname(file.name)).replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+		const finalName = `${basename}-${Date.now()}${ext}`;
+
+		const filePath = path.join(userDir, finalName);
+
+		try {
+			// Optimize image with sharp
+			const optimizedBuffer = await optimizeImage(fileBuffer, {
+				width: 1920,
+				quality: 80
+			});
+			fs.writeFileSync(filePath, optimizedBuffer);
+			return { success: true, message: 'Foto berhasil diupload' };
+		} catch (err) {
+			console.error(err);
+			return fail(500, { error: 'Gagal menyimpan file' });
+		}
+	},
+
+	delete: async ({ request, locals }) => {
+		const formData = await request.formData();
+		const fileName = formData.get('fileName') as string;
+
+		if (!fileName) return fail(400, { error: 'Nama file tidak valid' });
+
+		const filePath = path.join(process.cwd(), 'static', 'uploads', locals.user!.id, fileName);
+
+		try {
+			if (fs.existsSync(filePath)) {
+				fs.unlinkSync(filePath);
+			}
+			return { success: true, message: 'Foto berhasil dihapus' };
+		} catch (err) {
+			console.error('[Delete Error]:', err);
+			const errMsg = err instanceof Error ? err.message : String(err);
+			return fail(500, { error: 'Gagal menghapus file server: ' + errMsg });
+		}
+	}
+};

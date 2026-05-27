@@ -1,0 +1,16 @@
+{
+  "id": "tmpl-royal",
+  "name": "Royal Midnight",
+  "category": "pernikahan",
+  "thumbnail": "https://images.unsplash.com/photo-1510076857177-7470076d4098?auto=format&fit=crop&w=600&q=80",
+  "description": "Perpaduan mewah warna biru tengah malam dan emas champagne, menciptakan kesan agung dan eksklusif.",
+  "defaultContent": {
+    "title": "The Wedding of",
+    "groom_name": "Nama Mempelai Pria",
+    "bride_name": "Nama Mempelai Wanita"
+  },
+  "primary_color": "#0f172a",
+  "secondary_color": "#c0a080",
+  "accent_color": "#ffffff",
+  "font_family": "Cinzel"
+}
