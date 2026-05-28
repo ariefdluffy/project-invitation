@@ -27,7 +27,7 @@ function toMysqlDateTime(d: Date): string {
 export async function createUser(username: string, email: string, password: string, role: string = 'user'): Promise<User> {
 	const db = await getDb();
 	const id = uuidv4();
-	const hashedPassword = bcryptjs.hashSync(password, 10);
+	const hashedPassword = await bcryptjs.hash(password, 10);
 
 	// Set 3-day trial for new users
 	const trialEndsAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)
@@ -48,7 +48,7 @@ export async function authenticateUser(email: string, password: string): Promise
 
 	if (userRows.length > 0) {
 		const row = userRows[0];
-		if (bcryptjs.compareSync(password, row.password)) {
+		if (await bcryptjs.compare(password, row.password)) {
 			const { password: _, ...user } = row;
 			return user;
 		}
@@ -172,7 +172,7 @@ export async function addTemplateQuotaToUser(id: string, amount: number): Promis
 
 export async function updateUserPassword(id: string, newPassword: string): Promise<void> {
 	const db = await getDb();
-	const hashedPassword = bcryptjs.hashSync(newPassword, 10);
+	const hashedPassword = await bcryptjs.hash(newPassword, 10);
 	await db.execute('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, id]);
 }
 
@@ -227,7 +227,7 @@ export async function verifyResetToken(email: string, token: string): Promise<Us
 	if (Date.now() > expiresAt) return null;
 
 	// Verify token
-	if (!bcryptjs.compareSync(token, user.reset_token)) return null;
+	if (!(await bcryptjs.compare(token, user.reset_token))) return null;
 
 	const { reset_token: _, reset_token_expires: __, ...userWithoutToken } = user;
 	return userWithoutToken;

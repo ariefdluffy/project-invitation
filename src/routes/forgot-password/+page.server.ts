@@ -80,7 +80,7 @@ export const actions: Actions = {
 
 		// Generate reset token (random bytes, hashed before stored)
 		const rawToken = crypto.randomBytes(32).toString('hex');
-		const hashedToken = bcryptjs.hashSync(rawToken, 10);
+		const hashedToken = await bcryptjs.hash(rawToken, 10);
 		const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
 
 		await saveResetToken(user.id, hashedToken, expiresAt);

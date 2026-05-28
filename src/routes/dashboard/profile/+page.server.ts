@@ -52,7 +52,7 @@ export const actions: Actions = {
 			return fail(404, { error: 'Pengguna tidak ditemukan atau password tidak ada.' });
 		}
 
-		if (!bcryptjs.compareSync(currentPassword, userWithPassword.password)) {
+		if (!(await bcryptjs.compare(currentPassword, userWithPassword.password))) {
 			return fail(400, { error: 'Password saat ini salah.' });
 		}
 
