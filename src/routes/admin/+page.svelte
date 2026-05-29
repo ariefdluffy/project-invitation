@@ -3,14 +3,14 @@
 	let { data }: { data: PageData } = $props();
 
 	const stats = $derived([
-		{ label: 'Total Users', value: data.users.length, icon: '👥', color: '#6c63ff' },
-		{ label: 'Total Undangan', value: data.invitations.length, icon: '💌', color: '#a78bfa' },
-		{ label: 'Published', value: data.invitations.filter((i: any) => i.is_published).length, icon: '✅', color: '#27ae60' },
+		{ label: 'Total Users', value: data.monitoring?.users?.total || data.users.length, icon: '👥', color: '#6c63ff' },
+		{ label: 'Total Undangan', value: data.monitoring?.invitations?.total || data.invitations.length, icon: '💌', color: '#a78bfa' },
+		{ label: 'Published', value: data.monitoring?.invitations?.published || data.invitations.filter((i: any) => i.is_published).length, icon: '✅', color: '#27ae60' },
 		{ label: 'Template', value: data.templates.length, icon: '🎨', color: '#e67e22' },
 	]);
 
 	const paidUsers = $derived(
-		data.users.filter((u: { payment_status?: string }) => u.payment_status === 'paid').length
+		data.monitoring?.users?.paid || data.users.filter((u: { payment_status?: string }) => u.payment_status === 'paid').length
 	);
 	const pendingUsers = $derived(
 		data.users.filter((u: { payment_status?: string }) => u.payment_status === 'pending')

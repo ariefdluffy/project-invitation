@@ -13,6 +13,39 @@
 	let showDeleteModal = $state(false);
 	let userToReset = $state<User | null>(null);
 	let userToDelete = $state<User | null>(null);
+	let selectedIds = $state(new Set<string>());
+	let showBulkDeleteModal = $state(false);
+
+	function toggleSelectAll() {
+		if (selectedIds.size === data.users.length) {
+			selectedIds = new Set();
+		} else {
+			selectedIds = new Set(data.users.map((u: any) => u.id));
+		}
+	}
+
+	function toggleSelect(id: string) {
+		const next = new Set(selectedIds);
+		if (next.has(id)) next.delete(id);
+		else next.add(id);
+		selectedIds = next;
+	}
+
+	function doBulkAction(actionType: string) {
+		if (selectedIds.size === 0) return;
+		if (actionType === 'delete') {
+			showBulkDeleteModal = true;
+			return;
+		}
+		const form = document.querySelector('#bulk-form') as HTMLFormElement;
+		if (!form) return;
+		(form.querySelector('[name="action_type"]') as HTMLInputElement).value = actionType;
+		(form.querySelector('[name="user_ids"]') as HTMLInputElement).value = Array.from(selectedIds).join(',');
+		setTimeout(() => {
+			form.requestSubmit();
+			selectedIds = new Set();
+		}, 0);
+	}
 
 	function openResetModal(user: User) {
 		userToReset = user;
@@ -118,10 +151,25 @@
 	</p>
 {/if}
 
+<form id="bulk-form" method="POST" action="?/bulkAction" style="display:none">
+	<input type="hidden" name="action_type" value="" />
+	<input type="hidden" name="user_ids" value="" />
+</form>
+
+{#if selectedIds.size > 0}
+	<div class="bulk-toolbar">
+		<span class="bulk-count">{selectedIds.size} user dipilih</span>
+		<button class="btn btn-primary btn-sm" onclick={() => doBulkAction('activate')}>✅ Activate</button>
+		<button class="btn btn-secondary btn-sm" onclick={() => doBulkAction('deactivate')}>❌ Deactivate</button>
+		<button class="btn btn-danger btn-sm" onclick={() => doBulkAction('delete')}>🗑️ Delete</button>
+	</div>
+{/if}
+
 <div class="dash-card">
 	<table class="dash-table">
 		<thead>
 			<tr>
+				<th><input type="checkbox" onchange={toggleSelectAll} checked={selectedIds.size === data.users.length && data.users.length > 0} /></th>
 				<th>Username</th>
 				<th>Email</th>
 				<th>Role</th>
@@ -137,9 +185,12 @@
 			{#each data.users as user}
 				<tr>
 					<td>
+						<input type="checkbox" checked={selectedIds.has(user.id)} onchange={() => toggleSelect(user.id)} />
+					</td>
+					<td>
 						<div class="user-cell">
 							<span class="avatar-sm">{user.username.charAt(0).toUpperCase()}</span>
-							{user.username}
+							<a href="/admin/users/{user.id}" class="user-link">{user.username}</a>
 						</div>
 					</td>
 					<td>{user.email}</td>
@@ -243,6 +294,18 @@
 	</table>
 </div>
 
+{#if data.pagination && data.pagination.totalPages > 1}
+	<div class="pagination">
+		{#if data.pagination.page > 1}
+			<a href="/admin/users?filter={data.filter}&page={data.pagination.page - 1}" class="btn btn-secondary btn-sm">← Prev</a>
+		{/if}
+		<span class="pagination-info">Halaman {data.pagination.page} dari {data.pagination.totalPages} ({data.pagination.total} user)</span>
+		{#if data.pagination.page < data.pagination.totalPages}
+			<a href="/admin/users?filter={data.filter}&page={data.pagination.page + 1}" class="btn btn-secondary btn-sm">Next →</a>
+		{/if}
+	</div>
+{/if}
+
 <!-- Modal Tambah User -->
 {#if showAddModal}
 	<div
@@ -319,6 +382,42 @@
 				<div class="modal-actions">
 					<button type="button" class="btn btn-secondary" onclick={() => showResetModal = false}>Batal</button>
 					<button type="submit" class="btn btn-danger">Ya, Reset Password</button>
+				</div>
+			</form>
+		</div>
+	</div>
+{/if}
+
+<!-- Modal Bulk Delete -->
+{#if showBulkDeleteModal}
+	<div class="modal-overlay" role="button" tabindex="0" onclick={(e) => { if (e.target === e.currentTarget) showBulkDeleteModal = false; }} onkeydown={(e) => { if (e.key === 'Escape') showBulkDeleteModal = false; }}>
+		<div class="modal-content" role="dialog" aria-modal="true">
+			<div class="modal-header">
+				<h2>Hapus {selectedIds.size} User</h2>
+				<button class="btn-close" onclick={() => showBulkDeleteModal = false}>✕</button>
+			</div>
+			<p>Yakin hapus <strong>{selectedIds.size} user</strong>? Admin akan dilewati (tidak dihapus).</p>
+			<p style="margin-top: 0.5rem; color: var(--color-danger);">Tindakan ini tidak dapat dibatalkan.</p>
+
+			<form method="POST" action="?/bulkAction" use:enhance={() => {
+				return async ({ result, update }: any) => {
+					await update();
+					if (result.type === 'success') {
+						const d = result.data as { message?: string };
+						if (d?.message) toast.success(d.message);
+					} else {
+						const d = result.data as { error?: string };
+						if (d?.error) toast.error(d.error);
+					}
+					showBulkDeleteModal = false;
+					selectedIds = new Set();
+				};
+			}}>
+				<input type="hidden" name="action_type" value="delete" />
+				<input type="hidden" name="user_ids" value={Array.from(selectedIds).join(',')} />
+				<div class="modal-actions">
+					<button type="button" class="btn btn-secondary" onclick={() => showBulkDeleteModal = false}>Batal</button>
+					<button type="submit" class="btn btn-danger">Ya, Hapus {selectedIds.size} User</button>
 				</div>
 			</form>
 		</div>
@@ -437,6 +536,14 @@
 		align-items: center;
 		gap: 0.5rem;
 	}
+	.user-link {
+		color: var(--dash-accent);
+		text-decoration: none;
+		font-weight: 600;
+	}
+	.user-link:hover {
+		text-decoration: underline;
+	}
 	.avatar-sm {
 		width: 28px;
 		height: 28px;
@@ -531,6 +638,22 @@
 		border: 1px solid transparent;
 		cursor: pointer;
 	}
+	.bulk-toolbar {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.75rem 1rem;
+		background: rgba(108, 99, 255, 0.08);
+		border: 1px solid rgba(108, 99, 255, 0.2);
+		border-radius: 8px;
+		margin-bottom: 1rem;
+	}
+	.bulk-count {
+		font-weight: 600;
+		font-size: 0.85rem;
+		margin-right: auto;
+	}
+
 	.badge-select.unpaid {
 		background: #fee2e2;
 		color: #ef4444;
@@ -575,5 +698,18 @@
 	.limit-input {
 		width: 60px;
 		text-align: center;
+	}
+
+	.pagination {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 1rem;
+		margin-top: 1.5rem;
+		padding: 1rem 0;
+	}
+	.pagination-info {
+		font-size: 0.85rem;
+		color: var(--dash-text-muted);
 	}
 </style>

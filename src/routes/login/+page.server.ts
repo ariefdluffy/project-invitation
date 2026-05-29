@@ -82,7 +82,7 @@ export const actions: Actions = {
       if (!result.success) {
         console.error('Turnstile verification failed:', result.errorCodes);
         if (dev && result.errorCodes?.includes('invalid-input-response')) {
-          console.warn('[Dev] Bypassing Turnstile verification failure in dev mode');
+          console.warn('[Dev] Bypassing Turnstile verification failure in dev mode. This should NEVER happen in production.');
         } else {
           return fail(400, {
             error: "Gagal memverifikasi bahwa Anda bukan robot. Silakan refresh halaman dan coba lagi.",

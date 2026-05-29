@@ -3,6 +3,7 @@ import {
   seedTemplates,
   seedAdmin,
   seedSettings,
+  ensureIndexes,
 } from "$lib/server/invitations";
 import {
   getUserById,
@@ -66,6 +67,7 @@ export const handle: Handle = async ({ event, resolve }) => {
     await ensurePromoCodesTable();
     await ensurePageViewsTable();
     await ensureAuditLogsTable();
+    await ensureIndexes();
     seeded = true;
     startExpiryWorker();
   }

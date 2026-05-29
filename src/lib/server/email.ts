@@ -55,8 +55,6 @@ export interface EmailOptions {
 
 /**
  * Send an email via configured SMTP.
- * Returns `{ sent: true }` on success, `{ sent: false, error: string }` on failure.
- * If SMTP is not configured, returns `{ sent: false, error: 'SMTP_NOT_CONFIGURED' }`.
  */
 export async function sendEmail(options: EmailOptions): Promise<{ sent: boolean; error?: string }> {
 	const t = getTransporter();
@@ -85,13 +83,22 @@ export async function sendEmail(options: EmailOptions): Promise<{ sent: boolean;
 }
 
 /**
- * Send password reset email.
+ * Send password reset email. Supports custom templates from settings.
  */
-export async function sendPasswordResetEmail(to: string, resetLink: string, appName: string): Promise<{ sent: boolean; error?: string }> {
-	return sendEmail({
-		to,
-		subject: `Reset Password - ${appName}`,
-		html: `
+export async function sendPasswordResetEmail(
+	to: string,
+	resetLink: string,
+	appName: string,
+	customSubject?: string,
+	customBody?: string
+): Promise<{ sent: boolean; error?: string }> {
+	const subject = (customSubject || `Reset Password - ${appName}`).replace(/{appName}/g, appName);
+	let html: string;
+
+	if (customBody) {
+		html = customBody.replace(/{appName}/g, appName).replace(/{resetLink}/g, resetLink);
+	} else {
+		html = `
 			<div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
 				<h2 style="color: #1a1a2e;">Reset Password</h2>
 				<p>Kami menerima permintaan reset password untuk akun Anda.</p>
@@ -108,36 +115,74 @@ export async function sendPasswordResetEmail(to: string, resetLink: string, appN
 				<hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;" />
 				<p style="color: #999; font-size: 12px;">&copy; ${new Date().getFullYear()} ${appName}</p>
 			</div>
-		`,
-		text: `
-Reset Password - ${appName}
+		`;
+	}
 
-Kami menerima permintaan reset password untuk akun Anda.
-
-Kunjungi link berikut untuk mereset password:
-${resetLink}
-
-Link ini berlaku selama 1 jam.
-
-Jika Anda tidak meminta reset password, abaikan email ini.
-		`.trim()
+	return sendEmail({
+		to,
+		subject,
+		html,
+		text: `Reset Password: ${resetLink}`
 	});
 }
 
 /**
- * Send welcome / registration email.
+ * Send admin reset notification (admin directly reset user's password).
  */
-export async function sendWelcomeEmail(to: string, username: string, appName: string): Promise<{ sent: boolean; error?: string }> {
+export async function sendAdminResetNotification(
+	to: string,
+	newPassword: string,
+	username: string,
+	appName: string
+): Promise<{ sent: boolean; error?: string }> {
+	const loginUrl = `${resetLinkPlaceholder()}/login`;
 	return sendEmail({
 		to,
-		subject: `Selamat Datang di ${appName}!`,
+		subject: `Password Direset Oleh Admin - ${appName}`,
 		html: `
+			<div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
+				<h2 style="color: #1a1a2e;">Password Direset</h2>
+				<p>Halo ${username},</p>
+				<p>Admin telah mereset password akun Anda. Password baru Anda:</p>
+				<div style="background:#f5f5f5;padding:16px;border-radius:8px;font-family:monospace;font-size:1.2rem;text-align:center;margin:24px 0;word-break:break-all;">
+					${newPassword}
+				</div>
+				<p style="color:#b45309;">Segera login dan ubah password setelah masuk.</p>
+				<div style="text-align:center;margin:32px 0">
+					<a href="${loginUrl}" style="display:inline-block;padding:12px 32px;background:#d4a574;color:#fff;text-decoration:none;border-radius:8px;font-weight:600">Login Sekarang</a>
+				</div>
+				<hr style="border:none;border-top:1px solid #eee;margin:24px 0" />
+				<p style="color:#999;font-size:12px">&copy; ${new Date().getFullYear()} ${appName}</p>
+			</div>
+		`,
+		text: `Password akun ${username} telah direset oleh admin. Password baru: ${newPassword}. Login: ${loginUrl}`
+	});
+}
+
+/**
+ * Send welcome / registration email. Supports custom templates from settings.
+ */
+export async function sendWelcomeEmail(
+	to: string,
+	username: string,
+	appName: string,
+	customSubject?: string,
+	customBody?: string
+): Promise<{ sent: boolean; error?: string }> {
+	const subject = (customSubject || `Selamat Datang di ${appName}!`).replace(/{appName}/g, appName);
+	let html: string;
+
+	if (customBody) {
+		html = customBody.replace(/{appName}/g, appName).replace(/{username}/g, username);
+	} else {
+		const loginUrl = `${resetLinkPlaceholder()}/login`;
+		html = `
 			<div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
 				<h2 style="color: #1a1a2e;">Halo ${username}!</h2>
 				<p>Selamat datang di <strong>${appName}</strong>.</p>
 				<p>Akun Anda berhasil dibuat. Silakan login untuk mulai membuat undangan digital.</p>
 				<div style="text-align: center; margin: 32px 0;">
-					<a href="${resetLinkPlaceholder()}/login"
+					<a href="${loginUrl}"
 						style="display: inline-block; padding: 12px 32px; background: #d4a574; color: #fff;
 							   text-decoration: none; border-radius: 8px; font-weight: 600;">
 						Login Sekarang
@@ -146,16 +191,14 @@ export async function sendWelcomeEmail(to: string, username: string, appName: st
 				<hr style="border: none; border-top: 1px solid #eee; margin: 24px 0;" />
 				<p style="color: #999; font-size: 12px;">&copy; ${new Date().getFullYear()} ${appName}</p>
 			</div>
-		`,
-		text: `
-Selamat Datang di ${appName}!
+		`;
+	}
 
-Halo ${username},
-
-Akun Anda berhasil dibuat. Login untuk mulai membuat undangan digital.
-
-${resetLinkPlaceholder()}/login
-		`.trim()
+	return sendEmail({
+		to,
+		subject,
+		html,
+		text: `Selamat datang di ${appName}, ${username}! Login: ${resetLinkPlaceholder()}/login`
 	});
 }
 

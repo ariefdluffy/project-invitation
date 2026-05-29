@@ -347,11 +347,51 @@ export async function fixMusicLinks(): Promise<void> {
 	}
 }
 
+/** Ensure critical indexes exist for performance and data integrity. */
+export async function ensureIndexes(): Promise<void> {
+	const db = await getDb();
+	try {
+		// Unique index on slug — prevents duplicate invitation URLs
+		await db.execute(
+			'ALTER TABLE invitations ADD UNIQUE INDEX IF NOT EXISTS idx_slug (slug)'
+		).catch(async () => {
+			// MySQL < 8.0.29 doesn't support IF NOT EXISTS on ADD INDEX
+			try {
+				await db.execute('ALTER TABLE invitations ADD UNIQUE INDEX idx_slug (slug)');
+			} catch (e: any) {
+				if (!e.message?.includes('Duplicate') && !e.message?.includes('already exists')) {
+					console.warn('[Migration] idx_slug:', e.message);
+				}
+			}
+		});
+	} catch (err: any) {
+		if (!err.message?.includes('Duplicate') && !err.message?.includes('already exists')) {
+			console.error('[Migration] ensureIndexes:', err);
+		}
+	}
+
+	try {
+		// Index on users.email for faster login lookups
+		await db.execute(
+			'ALTER TABLE users ADD INDEX IF NOT EXISTS idx_email (email)'
+		).catch(async () => {
+			try {
+				await db.execute('ALTER TABLE users ADD INDEX idx_email (email)');
+			} catch (e: any) {
+				if (!e.message?.includes('Duplicate') && !e.message?.includes('already exists')) {
+					console.warn('[Migration] idx_email:', e.message);
+				}
+			}
+		});
+	} catch (err: any) {
+		if (!err.message?.includes('Duplicate') && !err.message?.includes('already exists')) {
+			console.error('[Migration] ensureIndexes email:', err);
+		}
+	}
+}
+
 export async function ensureRespectColumn(): Promise<void> {
 	const db = await getDb();
-
-	// Also fix music links during migration
-	await fixMusicLinks();
 
 	try {
 		const [rows] = await db.execute("SHOW COLUMNS FROM invitations LIKE 'respect_person'");

@@ -2,6 +2,15 @@
  * Simple in-memory rate limiter.
  * WARNING: Per-process state. In PM2 cluster mode, each instance tracks separately.
  * For production with multi-instance, use Redis or external store.
+ *
+ * Mitigasi yang sudah ada:
+ * - Login/register/forgot-password: rate limit by IP per instance
+ * - Cloudflare Turnstile: captcha protection di layer CDN
+ * - Session HMAC: tidak bisa di-bypass tanpa secret
+ *
+ * Untuk PM2 cluster mode, pertimbangkan:
+ * - `pm2 scale` = 1 (single instance)
+ * - Atau gunakan Redis-backed rate limiter (e.g. rate-limiter-flexible + ioredis)
  */
 
 interface RateLimitEntry {

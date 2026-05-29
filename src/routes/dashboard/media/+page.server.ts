@@ -77,11 +77,23 @@ export const actions: Actions = {
 
 	delete: async ({ request, locals }) => {
 		const formData = await request.formData();
-		const fileName = formData.get('fileName') as string;
+		const rawFileName = formData.get('fileName') as string;
 
-		if (!fileName) return fail(400, { error: 'Nama file tidak valid' });
+		if (!rawFileName) return fail(400, { error: 'Nama file tidak valid' });
 
-		const filePath = path.join(process.cwd(), 'static', 'uploads', locals.user!.id, fileName);
+		// Sanitize: strip path components, prevent traversal
+		const fileName = path.basename(rawFileName);
+		if (!fileName || fileName === '.' || fileName === '..') {
+			return fail(400, { error: 'Nama file tidak valid' });
+		}
+
+		const userDir = path.join(process.cwd(), 'static', 'uploads', locals.user!.id);
+		const filePath = path.join(userDir, fileName);
+
+		// Verify resolved path stays within user directory
+		if (!filePath.startsWith(userDir + path.sep) && filePath !== userDir) {
+			return fail(400, { error: 'Path tidak valid' });
+		}
 
 		try {
 			if (fs.existsSync(filePath)) {

@@ -135,6 +135,44 @@
 		</form>
 	</div>
 
+	<!-- Email Templates Section -->
+	<div class="dash-card" style="margin-top:1.5rem">
+		<h3 style="margin-bottom:1.5rem">✉️ Template Email</h3>
+		<form method="POST" action="?/update" use:enhance={settingsEnhance}>
+			<details style="margin-bottom:1.5rem">
+				<summary style="font-weight:600;cursor:pointer;font-size:0.95rem">📨 Email Selamat Datang</summary>
+				<p class="muted" style="margin:0.5rem 0">Variabel: {'{appName}'} {'{username}'}</p>
+				<div class="form-group">
+					<label>Subject</label>
+					<input name="email_welcome_subject" class="form-control" value={data.settings.email_welcome_subject || ''}
+						placeholder={'Selamat datang di {appName}!'} />
+				</div>
+				<div class="form-group">
+					<label>Body (HTML)</label>
+					<textarea name="email_welcome_body" class="form-control" rows="6"
+						placeholder={'<p>Halo {username}!</p><p>Selamat datang di {appName}.</p>'}>{data.settings.email_welcome_body || ''}</textarea>
+				</div>
+			</details>
+			<details style="margin-bottom:1.5rem">
+				<summary style="font-weight:600;cursor:pointer;font-size:0.95rem">🔑 Email Reset Password</summary>
+				<p class="muted" style="margin:0.5rem 0">Variabel: {'{appName}'} {'{resetLink}'}</p>
+				<div class="form-group">
+					<label>Subject</label>
+					<input name="email_reset_subject" class="form-control" value={data.settings.email_reset_subject || ''}
+						placeholder={'Reset Password - {appName}'} />
+				</div>
+				<div class="form-group">
+					<label>Body (HTML)</label>
+					<textarea name="email_reset_body" class="form-control" rows="6"
+						placeholder={'<p>Klik link berikut: {resetLink}</p>'}>{data.settings.email_reset_body || ''}</textarea>
+				</div>
+			</details>
+			<div class="form-actions">
+				<button type="submit" class="btn btn-primary">💾 Simpan Template Email</button>
+			</div>
+		</form>
+	</div>
+
 	<div class="dash-card info-card">
 		<div class="info-card-header">
 			<div class="info-card-icon">

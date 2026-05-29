@@ -96,7 +96,7 @@ export const actions: Actions = {
 
       if (!result.success) {
         if (dev && result.errorCodes?.includes('invalid-input-response')) {
-          console.warn('[Dev] Bypassing Turnstile verification failure in dev mode');
+          console.warn('[Dev] Bypassing Turnstile verification failure in dev mode. This should NEVER happen in production.');
         } else {
           return fail(400, {
             error: "Gagal memverifikasi bahwa Anda bukan robot. Silakan refresh halaman dan coba lagi.",
@@ -136,11 +136,14 @@ export const actions: Actions = {
       });
 
       // Send welcome email (async, don't block)
-      getSetting("app_name")
-        .then((appName) => {
-          sendWelcomeEmail(email, username, appName || "Wedding.id");
-        })
-        .catch(() => {});
+      (async () => {
+        try {
+          const appName = await getSetting("app_name") || "Wedding.id";
+          const emailSubject = await getSetting("email_welcome_subject") || undefined;
+          const emailBody = await getSetting("email_welcome_body") || undefined;
+          await sendWelcomeEmail(email, username, appName, emailSubject, emailBody);
+        } catch {}
+      })();
 
       throw redirect(303, "/dashboard");
     } catch (err: unknown) {

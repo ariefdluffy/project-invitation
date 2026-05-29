@@ -65,6 +65,18 @@ export async function findPaymentTransactionByOrderId(orderId: string): Promise<
 }
 
 /**
+ * Get all payment transactions for a user
+ */
+export async function getPaymentTransactionsByUser(userId: string): Promise<PaymentTransaction[]> {
+	const db = await getDb();
+	const [rows] = await db.execute(
+		'SELECT id, user_id, order_id, type, amount, status, promo_code, created_at, updated_at FROM payment_transactions WHERE user_id = ? ORDER BY created_at DESC',
+		[userId]
+	);
+	return rows as PaymentTransaction[];
+}
+
+/**
  * Update payment transaction status
  */
 export async function updatePaymentTransactionStatus(

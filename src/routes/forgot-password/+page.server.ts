@@ -63,7 +63,7 @@ export const actions: Actions = {
 
 			if (!result.success) {
 				if (dev && result.errorCodes?.includes('invalid-input-response')) {
-					console.warn('[Dev] Bypassing Turnstile verification failure in dev mode');
+					console.warn('[Dev] Bypassing Turnstile verification failure in dev mode. This should NEVER happen in production.');
 				} else {
 					return fail(400, { error: 'Gagal memverifikasi bahwa Anda bukan robot. Silakan refresh halaman dan coba lagi.' });
 				}
@@ -89,8 +89,10 @@ export const actions: Actions = {
 		const appName = (await getSetting('app_name')) || 'Wedding.id';
 		const origin = url.origin;
 		const resetLink = `${origin}/reset-password/${rawToken}?email=${encodeURIComponent(email)}`;
+		const emailSubject = await getSetting('email_reset_subject') || undefined;
+		const emailBody = await getSetting('email_reset_body') || undefined;
 
-		sendPasswordResetEmail(email, resetLink, appName).catch((err) => {
+		sendPasswordResetEmail(email, resetLink, appName, emailSubject, emailBody).catch((err) => {
 			console.error('[ForgotPassword] Failed to send email:', err);
 		});
 

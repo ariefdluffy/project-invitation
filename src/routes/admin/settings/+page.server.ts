@@ -1,6 +1,7 @@
 import type { PageServerLoad, Actions } from './$types';
 import { getAllSettings, updateSetting } from '$lib/server/settings';
 import { fail } from '@sveltejs/kit';
+import { checkRateLimit, ipKey } from '$lib/server/rate-limiter';
 
 /** Hanya field form yang boleh ditulis ke tabel settings (hindari key asing / submit noise). */
 const ALLOWED_SETTING_KEYS = new Set([
@@ -14,7 +15,11 @@ const ALLOWED_SETTING_KEYS = new Set([
 	'payment_instructions',
 	'default_music_url',
 	'template_expansion_price',
-	'template_expansion_quantity'
+	'template_expansion_quantity',
+	'email_welcome_subject',
+	'email_welcome_body',
+	'email_reset_subject',
+	'email_reset_body'
 ]);
 
 export const load: PageServerLoad = async ({ locals }) => {
@@ -26,10 +31,13 @@ export const load: PageServerLoad = async ({ locals }) => {
 };
 
 export const actions: Actions = {
-	update: async ({ request, locals }) => {
+	update: async ({ request, locals, getClientAddress }) => {
 		if (!locals.user || locals.user.role !== 'admin') {
 			return fail(403, { error: 'Tidak memiliki akses' });
 		}
+
+		const rl = checkRateLimit(ipKey(getClientAddress(), 'admin-settings'), { maxRequests: 10, windowMs: 60000 });
+		if (!rl.allowed) return fail(429, { error: 'Terlalu banyak permintaan. Coba lagi nanti.' });
 
 		const formData = await request.formData();
 		
