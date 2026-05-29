@@ -18,50 +18,62 @@
 			{data.appName}
 		</div>
 		<nav class="dash-nav">
-			<a href="/admin">
-				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
-				Overview
-			</a>
-			<a href="/admin/users">
-				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
-				Users
-			</a>
-			<a href="/admin/invitations">
-				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
-				Undangan
-			</a>
-			<a href="/admin/templates">
-				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
-				Template
-			</a>
-			<a href="/admin/settings">
-							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
-							App Settings
-						</a>
-						<a href="/admin/promo">
-							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-							Promo Codes
-						</a>
-						<a href="/admin/revenue">
-							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
-							Revenue
-						</a>
-						<a href="/admin/announcement">
-							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
-							Announcement
-						</a>
-						<a href="/admin/export">
-							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-							Export
-						</a>
-						<a href="/admin/audit">
-							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-							Audit Logs
-						</a>
-						<a href="/admin/profile"> <!-- <--- Perubahan di sini -->
-				<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-				My Profile
-			</a>
+			<div class="nav-group">
+				<span class="nav-label">📋 Kelola</span>
+				<a href="/admin">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+					Overview
+				</a>
+				<a href="/admin/users">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+					Users
+				</a>
+				<a href="/admin/invitations">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+					Undangan
+				</a>
+				<a href="/admin/templates">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+					Template
+				</a>
+			</div>
+			<div class="nav-group">
+				<span class="nav-label">💰 Bisnis</span>
+				<a href="/admin/revenue">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+					Revenue
+				</a>
+				<a href="/admin/promo">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+					Promo
+				</a>
+			</div>
+			<div class="nav-group">
+				<span class="nav-label">⚙️ Admin</span>
+				<a href="/admin/settings">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+					Settings
+				</a>
+				<a href="/admin/announcement">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+					Broadcast
+				</a>
+				<a href="/admin/export">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+					Export
+				</a>
+				<a href="/admin/audit">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+					Audit Log
+				</a>
+			</div>
+			<div class="nav-group">
+				<span class="nav-label">👤 Akun</span>
+				<a href="/admin/profile">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 00-4-4H9a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+					Profile
+				</a>
+			</div>
 		</nav>
 		<div class="dash-user-info">
 			<div class="user-avatar admin-avatar">A</div>
@@ -106,11 +118,11 @@
 	.dash-nav a {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
-		padding: 0.6rem 1rem;
+		gap: 0.5rem;
+		padding: 0.35rem 0.75rem;
 		color: var(--dash-text-muted);
-		font-size: 0.9rem;
-		border-radius: 8px;
+		font-size: 0.78rem;
+		border-radius: 6px;
 		transition: all 0.2s;
 	}
 	.dash-nav a:hover {
@@ -123,13 +135,26 @@
 		font-weight: 600;
 	}
 	.dash-nav a svg {
-		width: 18px;
-		height: 18px;
+		width: 14px;
+		height: 14px;
 		flex-shrink: 0;
-		opacity: 0.8;
+		opacity: 0.7;
 	}
 	.dash-nav a.active svg {
 		opacity: 1;
+	}
+	.nav-group {
+		margin-bottom: 0.5rem;
+	}
+	.nav-label {
+		display: block;
+		padding: 0.25rem 0.75rem 0.15rem;
+		font-size: 0.6rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.5px;
+		color: var(--dash-text-muted);
+		opacity: 0.6;
 	}
 	.mobile-toggle {
 		display: none;
@@ -146,14 +171,14 @@
 	.dash-user-info {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
-		padding: 1rem 0;
+		gap: 0.5rem;
+		padding: 0.5rem 0;
 		border-top: 1px solid var(--dash-border);
 		margin-top: auto;
 	}
 	.user-avatar {
-		width: 36px;
-		height: 36px;
+		width: 28px;
+		height: 28px;
 		background: linear-gradient(135deg, #6c63ff, #a78bfa);
 		border-radius: 50%;
 		display: flex;
@@ -161,7 +186,7 @@
 		justify-content: center;
 		color: white;
 		font-weight: 700;
-		font-size: 0.9rem;
+		font-size: 0.75rem;
 	}
 	.user-details {
 		display: flex;
@@ -169,23 +194,23 @@
 	}
 	.user-name {
 		font-weight: 600;
-		font-size: 0.9rem;
+		font-size: 0.78rem;
 	}
 	.user-role {
-		font-size: 0.75rem;
+		font-size: 0.65rem;
 		color: var(--dash-text-muted);
 	}
 	.logout-btn {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
+		gap: 0.5rem;
 		width: 100%;
-		padding: 0.6rem 1rem;
+		padding: 0.35rem 0.75rem;
 		color: var(--dash-text-muted);
-		font-size: 0.9rem;
-		border-radius: 8px;
+		font-size: 0.78rem;
+		border-radius: 6px;
 		transition: all 0.2s;
-		margin-top: 0.5rem;
+		margin-top: 0.25rem;
 	}
 	.logout-btn:hover {
 		background: rgba(231, 76, 60, 0.15);
@@ -202,5 +227,91 @@
 	@media (max-width: 768px) {
 		.mobile-toggle { display: block; }
 		.sidebar-overlay { display: block; }
+	}
+
+	/* === GLOBAL FONT SIZE OVERRIDES (all admin pages) === */
+	:global(.dash-header) {
+		margin-bottom: 1rem !important;
+	}
+	:global(.dash-header h1) {
+		font-size: 1.1rem !important;
+		margin: 0 !important;
+	}
+	:global(.dash-header h2) {
+		font-size: 0.95rem !important;
+	}
+	:global(.dash-card) {
+		padding: 0.75rem !important;
+		margin-bottom: 0.75rem !important;
+	}
+	:global(.dash-card h2) {
+		font-size: 0.9rem !important;
+	}
+	:global(.dash-card h3) {
+		font-size: 0.82rem !important;
+		margin-bottom: 0.5rem !important;
+	}
+	:global(.card-header) {
+		margin-bottom: 0.75rem !important;
+	}
+	:global(.card-header h2) {
+		font-size: 0.9rem !important;
+	}
+	:global(.dash-table th) {
+		font-size: 0.7rem !important;
+		padding: 0.35rem 0.5rem !important;
+	}
+	:global(.dash-table td) {
+		font-size: 0.72rem !important;
+		padding: 0.3rem 0.5rem !important;
+	}
+	:global(.btn) {
+		font-size: 0.72rem !important;
+		padding: 0.3rem 0.6rem !important;
+	}
+	:global(.btn-sm) {
+		font-size: 0.68rem !important;
+		padding: 0.2rem 0.5rem !important;
+	}
+	:global(.badge) {
+		font-size: 0.65rem !important;
+		padding: 0.1rem 0.4rem !important;
+	}
+	:global(.stat-value) {
+		font-size: 1.3rem !important;
+	}
+	:global(.stat-label) {
+		font-size: 0.72rem !important;
+	}
+	:global(.form-control) {
+		font-size: 0.78rem !important;
+		padding: 0.35rem 0.5rem !important;
+	}
+	:global(.form-group label) {
+		font-size: 0.75rem !important;
+		margin-bottom: 0.15rem !important;
+	}
+	:global(.form-group) {
+		margin-bottom: 0.5rem !important;
+	}
+	:global(.muted) {
+		font-size: 0.72rem !important;
+	}
+	:global(.quick-links) {
+		margin-bottom: 0.75rem !important;
+	}
+	:global(.quick-links a) {
+		font-size: 0.72rem !important;
+		padding: 0.25rem 0.5rem !important;
+	}
+	:global(p) {
+		font-size: 0.78rem !important;
+	}
+	:global(.detail-table td) {
+		font-size: 0.72rem !important;
+		padding: 0.3rem 0.5rem !important;
+	}
+	:global(summary) {
+		font-size: 0.78rem !important;
 	}
 </style>
