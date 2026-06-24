@@ -58,26 +58,105 @@ Dewi; Eka; Fajar"
 </div>
 
 <style>
-	.page { min-height: 100vh; background: #f5f5f5; padding: 24px; }
-	.container { max-width: 640px; margin: 0 auto; }
-	.back-link { display: inline-block; margin-bottom: 16px; color: #d4a574; text-decoration: none; }
-	.back-link:hover { text-decoration: underline; }
-	h1 { font-size: 22px; color: #1a1a2e; margin: 0 0 24px; }
-	.info-box { background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; margin-bottom: 24px; font-size: 14px; }
-	.info-box h3 { margin: 0 0 12px; font-size: 15px; }
-	.info-box ul { margin: 0; padding-left: 20px; }
-	.info-box li { margin-bottom: 6px; color: #666; }
-	.info-box code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
-	.form-group { margin-bottom: 20px; }
-	.form-group label { display: block; font-weight: 600; margin-bottom: 8px; color: #333; }
-	textarea { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; font-family: monospace; resize: vertical; box-sizing: border-box; }
-	textarea:focus { outline: none; border-color: #d4a574; }
-	.actions { display: flex; gap: 12px; }
-	.btn-primary { padding: 10px 24px; background: #d4a574; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 600; }
-	.btn-primary:hover { background: #c49564; }
-	.btn-secondary { padding: 10px 24px; background: #fff; color: #666; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; text-decoration: none; display: flex; align-items: center; }
-	.btn-secondary:hover { background: #f5f5f5; }
-	.alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; text-align: center; }
-	.alert-success { background: #e8f5e9; color: #2e7d32; }
-	.alert-error { background: #ffebee; color: #c62828; }
+    h1 {
+        font-family: var(--font-serif);
+        font-size: 1.8rem;
+        margin-bottom: 1.5rem;
+    }
+    .back-link {
+        display: inline-block;
+        margin-bottom: 1rem;
+        color: var(--dash-accent);
+    }
+    .back-link:hover {
+        text-decoration: underline;
+    }
+    .info-box {
+        background: var(--dash-surface);
+        border: 1px solid var(--dash-border);
+        border-radius: var(--radius-md);
+        padding: var(--space-lg);
+        margin-bottom: var(--space-lg);
+        font-size: 0.9rem;
+        color: var(--dash-text-muted);
+    }
+    .info-box h3 {
+        color: var(--dash-text);
+        margin-bottom: var(--space-sm);
+    }
+    .info-box ul {
+        margin: 0 0 var(--space-md);
+        padding-left: var(--space-xl);
+    }
+    .info-box li {
+        margin-bottom: 0.35rem;
+    }
+    .info-box code {
+        background: var(--dash-bg);
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+    textarea {
+        width: 100%;
+        padding: 0.7rem 1rem;
+        background: var(--dash-bg);
+        border: 1px solid var(--dash-border);
+        border-radius: var(--radius-md);
+        color: var(--dash-text);
+        font-size: 0.95rem;
+        font-family: monospace;
+        resize: vertical;
+        box-sizing: border-box;
+    }
+    textarea:focus {
+        outline: none;
+        border-color: var(--dash-accent);
+        box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.15);
+    }
+    .actions {
+        display: flex;
+        gap: 0.75rem;
+    }
+    .btn-primary {
+        padding: 0.65rem 1.5rem;
+        background: var(--dash-accent);
+        color: white;
+        border: none;
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+    .btn-primary:hover {
+        background: var(--dash-accent-hover);
+    }
+    .btn-secondary {
+        padding: 0.65rem 1.5rem;
+        background: transparent;
+        color: var(--dash-text);
+        border: 1px solid var(--dash-border);
+        border-radius: var(--radius-md);
+        font-size: 0.9rem;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+    }
+    .btn-secondary:hover {
+        background: var(--dash-surface-hover);
+    }
+    .alert {
+        padding: var(--space-md);
+        border-radius: var(--radius-md);
+        margin-bottom: var(--space-lg);
+        font-size: 0.9rem;
+        text-align: center;
+    }
+    .alert-success {
+        background: rgba(39, 174, 96, 0.15);
+        color: var(--color-success);
+    }
+    .alert-error {
+        background: rgba(231, 76, 60, 0.1);
+        color: var(--color-danger);
+    }
 </style>

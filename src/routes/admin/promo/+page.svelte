@@ -168,6 +168,11 @@
 		gap: 1rem;
 		margin-bottom: 0.5rem;
 	}
+	@media (max-width: 700px) {
+		.form-row {
+			grid-template-columns: 1fr;
+		}
+	}
 
 	.form-actions {
 		display: flex;

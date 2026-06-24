@@ -122,7 +122,7 @@
 		font-weight: 600;
 	}
 	.cover-title {
-		font-size: 2.8rem;
+		font-size: clamp(1.8rem, 6vw, 2.8rem);
 		line-height: 1.1;
 		margin-bottom: 1.5rem;
 	}

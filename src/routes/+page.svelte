@@ -269,7 +269,7 @@
 					<div class="pricing-badge">Paket Premium</div>
 					<h3 class="pricing-name">Premium</h3>
 					<div class="pricing-price">
-						<span class="price-amount">Rp 39.000</span>
+						<span class="price-amount">Rp {Number(data.premiumPrice).toLocaleString('id-ID')}</span>
 						<span class="price-period">/ bulan</span>
 					</div>
 					<p class="pricing-desc">Akses penuh ke semua fitur undangan digital dengan 5 undangan dan 100 tamu</p>
@@ -301,7 +301,7 @@
 					</ul>
 					<div class="pricing-addon">
 						<strong>Add-on Tersedia:</strong>
-						<p>+ Rp 19.000 untuk tambahan 50 tamu</p>
+						<p>+ Rp {Number(data.addonGuestPrice).toLocaleString('id-ID')} untuk tambahan {data.addonGuestQuantity} tamu</p>
 					</div>
 					<a href="/register" class="pricing-btn primary">
 						Mulai Berlangganan
@@ -531,6 +531,16 @@
 		align-items: center;
 		gap: 2rem;
 	}
+	@media (max-width: 500px) {
+		.hero-stats {
+			flex-direction: column;
+			gap: 1rem;
+			align-items: flex-start;
+		}
+		.stat-divider {
+			display: none;
+		}
+	}
 	.stat-item {
 		display: flex;
 		flex-direction: column;
@@ -648,7 +658,7 @@
 	}
 	.templates-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+		grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
 		gap: 2rem;
 	}
 	.template-card {
@@ -738,7 +748,7 @@
 	}
 	.features-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+		grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
 		gap: 1.5rem;
 	}
 	.feature-card {
