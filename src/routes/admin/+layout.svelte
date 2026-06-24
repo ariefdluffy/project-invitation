@@ -103,9 +103,10 @@
 	.dash-sidebar-logo {
 		font-family: var(--font-script);
 		font-size: 1.4rem;
-		padding: 0.5rem 0.75rem;
 		color: var(--dash-text);
 		letter-spacing: 0.5px;
+		padding-bottom: 0.75rem;
+		margin-bottom: 0.75rem;
 	}
 	.admin-badge {
 		display: inline-block;
@@ -126,7 +127,7 @@
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
-		padding: 0.35rem 0.75rem;
+		padding: 0.4rem 0.75rem;
 		color: var(--dash-text-muted);
 		font-size: 0.78rem;
 		border-radius: 6px;
@@ -151,7 +152,7 @@
 		opacity: 1;
 	}
 	.nav-group {
-		margin-bottom: 0.5rem;
+		margin-bottom: 0.35rem;
 	}
 	.nav-label {
 		display: block;
