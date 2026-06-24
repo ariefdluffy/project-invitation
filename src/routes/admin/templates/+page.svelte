@@ -85,7 +85,25 @@
 					</div>
 					<div class="form-group">
 						<label>Font Family</label>
-						<input name="font_family" class="form-control" value="Inter" placeholder="Inter" />
+						<input name="font_family" class="form-control" list="font-list" value="Playfair Display" placeholder="Playfair Display" />
+						<datalist id="font-list">
+							<option value="Playfair Display">
+							<option value="Great Vibes">
+							<option value="Lembar Moment">
+							<option value="Montserrat">
+							<option value="Cinzel">
+							<option value="Lora">
+							<option value="Special Elite">
+							<option value="Cinzel Decorative">
+							<option value="Outfit">
+							<option value="Cormorant Garamond">
+							<option value="Alex Brush">
+							<option value="Space Grotesk">
+							<option value="Inter">
+							<option value="Parisienne">
+							<option value="Tangerine">
+							<option value="Dancing Script">
+						</datalist>
 					</div>
 					<div class="form-group">
 						<label>Content JSON (opsional)</label>

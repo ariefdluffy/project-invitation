@@ -1,4 +1,4 @@
-import type { Actions } from './$types';
+import type { PageServerLoad, Actions } from './$types';
 import { fail, redirect } from "@sveltejs/kit";
 import { authenticateUser } from "$lib/server/users";
 import { createSessionToken } from "$lib/server/session";
@@ -31,6 +31,13 @@ async function verifyTurnstile(token: string, secretKey: string): Promise<{ succ
 	const data = await res.json() as { success: boolean; 'error-codes'?: string[] };
 	return { success: data.success, errorCodes: data['error-codes'] };
 }
+
+export const load: PageServerLoad = async ({ locals }) => {
+	if (locals.user) {
+		if (locals.user.role === 'admin') throw redirect(302, '/admin');
+		throw redirect(302, '/dashboard');
+	}
+};
 
 /**
  * Tentukan secret key yang efektif:

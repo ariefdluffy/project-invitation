@@ -1,4 +1,4 @@
-import type { Actions } from "./$types";
+import type { PageServerLoad, Actions } from "./$types";
 import { fail, redirect } from "@sveltejs/kit";
 import { createUser } from "$lib/server/users";
 import { createSessionToken } from "$lib/server/session";
@@ -25,6 +25,12 @@ function getEffectiveSecret(): string {
 	if (!SECRET_KEY || SECRET_KEY.trim() === TURNSTILE_TEST_SECRET) return TURNSTILE_TEST_SECRET;
 	return SECRET_KEY.trim();
 }
+
+export const load: PageServerLoad = async ({ locals }) => {
+	if (locals.user) {
+		throw redirect(302, '/dashboard');
+	}
+};
 
 export const actions: Actions = {
   default: async ({ request, cookies, getClientAddress }) => {
