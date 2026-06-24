@@ -100,6 +100,13 @@
 {/if}
 
 <style>
+	.dash-sidebar-logo {
+		font-family: var(--font-script);
+		font-size: 1.4rem;
+		padding: 0.5rem 0.75rem;
+		color: var(--dash-text);
+		letter-spacing: 0.5px;
+	}
 	.admin-badge {
 		display: inline-block;
 		background: linear-gradient(135deg, #e74c3c, #c0392b);
