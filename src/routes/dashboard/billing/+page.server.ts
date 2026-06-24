@@ -15,9 +15,9 @@ export const load: PageServerLoad = async ({ locals }) => {
 
 	return {
 		user,
-		premiumPrice: premiumPrice || '39000',
-		addonGuestPrice: addonGuestPrice || '19000',
-		addonGuestQuantity: addonGuestQuantity || '50',
+		premiumPrice,
+		addonGuestPrice,
+		addonGuestQuantity,
 		paymentInstructions: paymentInstructions || '',
 		trialActive,
 		trialEndsAt: user?.trial_ends_at || null,
